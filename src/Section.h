@@ -52,7 +52,7 @@
         explicit Section(const QString& title = "", const int animationDuration = DEFAULT_DURATION, QWidget* parent = 0);
 
         // set layout of content
-        void setContentLayout(QLayout& contentLayout);
+        void setContentLayout(QLayout* contentLayout);
         
         // set title
         void setTitle(QString title);

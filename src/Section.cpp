@@ -21,7 +21,6 @@
 #include <QPropertyAnimation>
 
 #include "Section.h"
-#include <QDebug>
 
     Section::Section(const QString& title, const int animationDuration, QWidget* parent)
         : QWidget(parent), animationDuration(animationDuration)
@@ -73,14 +72,12 @@
         toggleAnimation->start();
         
         this->isExpanded = expanded;
-        
-        qDebug() << "MV: toggle: isExpanded " << isExpanded;
     }
 
-    void Section::setContentLayout(QLayout& contentLayout)
+    void Section::setContentLayout(QLayout* contentLayout)
     {
         delete contentArea->layout();
-        contentArea->setLayout(&contentLayout);
+        contentArea->setLayout(contentLayout);
         collapsedHeight = sizeHint().height() - contentArea->maximumHeight();
         
         updateHeights();
