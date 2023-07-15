@@ -34,6 +34,10 @@ int main(int argc, char* argv[])
     }
 
     QWidget window;
+
+    window.resize(settings.value("winsize", QSize(640, 480)).toSize());
+    QObject::connect(&app, &QApplication::aboutToQuit, [&settings, &window](){ settings.setValue("winsize", window.size()); });
+
     window.setLayout(make_layout());
     window.setWindowTitle(app_name);
     window.show();
