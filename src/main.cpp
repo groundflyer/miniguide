@@ -1,6 +1,7 @@
 // -*- C++ -*-
 
 #include "layout.hpp"
+#include "parser.hpp"
 
 #include <QApplication>
 #include <QWidget>
@@ -8,6 +9,8 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QDir>
+
+#include <QDebug>
 
 static const QString app_name("Intrinsics Guide");
 
@@ -31,6 +34,21 @@ int main(int argc, char* argv[])
                                                  "XML documents (data-*.xml)");
         data_file.setFileName(data_path);
         settings.setValue("data", data_path);
+    }
+
+    const ParseData data = parse_doc(&data_file);
+
+    qDebug() << "version: " << data.version;
+    qDebug() << "date: " << data.date;
+
+    for(const Intrinsic& i : data.intrinsics)
+    {
+        qDebug() << i.name << '\t' << i.tech;
+        qDebug() << "\tCategory:" << i.category;
+        qDebug() << "\tCPUID Flags: " << i.cpuids.join(" + ");
+        qDebug() << "\tDescription: " << i.description;
+        qDebug() << "\tOperation: " << i.operation;
+        qDebug() << "\tHeader: " << i.header;
     }
 
     QWidget window;
