@@ -52,6 +52,13 @@ Intrinsic parse_intrinsic(const QDomNode& node)
         else if (name == "header")
             ret.header = text;
     }
+
+    if (!ret.parms.empty())
+        ret.parms.shrink_to_fit();
+
+    if (!ret.instructions.empty())
+        ret.instructions.shrink_to_fit();
+
     return ret;
 }
 
@@ -73,6 +80,7 @@ ParseData parse_doc(QFile* data_file)
 
         const QDomNodeList xml_intrinsics = root.childNodes();
 
+        ret.intrinsics.reserve(xml_intrinsics.count());
         for (int i = 0; i < xml_intrinsics.count(); ++i)
             ret.intrinsics.append(parse_intrinsic(xml_intrinsics.at(i)));
 

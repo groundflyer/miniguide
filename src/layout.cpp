@@ -2,7 +2,6 @@
 #include "Section.h"
 
 #include <QVBoxLayout>
-#include <QMainWindow>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QListWidgetItem>
@@ -12,64 +11,197 @@
 #include <QScrollArea>
 #include <QWidget>
 
-Section* make_section()
-{
-    QFont monospace_font("Monospace");
-    monospace_font.setStyleHint(QFont::TypeWriter);
 
-    QLabel* label2 = new QLabel("Monospace font\nbla bla bla\nfoo bar");
-    label2->setFont(monospace_font);
+enum class TECH
+    {
+        MMX,
+        SSE,
+        SSE2,
+        SSE3,
+        SSSE3,
+        SSE41,
+        SSE42,
+        AVX,
+        AVX2,
+        FMA,
+        AVX512,
+        KNC,
+        SVML,
+        OTHER
+    };
+
+static constexpr auto techs =
+    {
+        "MMX",
+        "SSE",
+        "SSE2",
+        "SSE3",
+        "SSSE3",
+        "SSE4.1",
+        "SSE4.2",
+        "AVX",
+        "AVX2",
+        "FMA",
+        "AVX-512",
+        "KNC",
+        "SVML",
+        "Other"
+    };
+
+static const inline QString type_html = "<font color=darkBlue>%1</font>";
+static const inline QString parm_html = "<font color=darkCyan>%1</font>";
+
+QString html_parms(const QVector<Var>& parms) noexcept
+{
+    QStringList varlist;
+
+    for (const Var& var: parms)
+        varlist.append(type_html.arg(var.type) + ' ' + parm_html.arg(var.name));
+
+    static const QString comma(", ");
+    return varlist.join(comma);
+}
+
+QString format_parms(const QVector<Var>& parms) noexcept
+{
+    QStringList varlist;
+
+    for (const Var& var: parms)
+        varlist.append(var.type + ' ' + var.name);
+
+    return varlist.join(' ');
+}
+
+QString format_instructions(const QVector<Instruction>& ins) noexcept
+{
+    QStringList list;
+
+    for (const Instruction& i : ins)
+        list.append(QString("%1 %2").arg(i.name.toLower(), i.form));
+
+    return list.join('\n');
+}
+
+Section* make_section(const Intrinsic& intr)
+{
+    const QString name = QString("%1 %2(%3)").arg(intr.ret_type, intr.name, format_parms(intr.parms));
+
+    static const QString font_family_ms("Monospace");
+    QFont monospace(font_family_ms);
+    monospace.setStyleHint(QFont::TypeWriter);
+
+    QFont bold;
+    bold.setBold(true);
+
+    static const QString qs_synopsis ("Synopsis");
+    QLabel* synopsis = new QLabel(qs_synopsis);
+    synopsis->setFont(bold);
+    synopsis->setTextFormat(Qt::PlainText);
+
+    static const QString sign_html("<font color=darkBlue>%1</font> %2(%3)");
+    QLabel* signature = new QLabel(sign_html.arg(intr.ret_type, intr.name, html_parms(intr.parms)));
+    signature->setTextFormat(Qt::RichText);
+    signature->setFont(monospace);
+
+    static const QString inc_template("#include <%1>");
+    QLabel* header = new QLabel(inc_template.arg(intr.header));
+    header->setFont(monospace);
+    header->setTextFormat(Qt::PlainText);
+
+    static const QString qs_instruction ("Instruction:");
+    QLabel* instruction = new QLabel(qs_instruction);
+    instruction->setTextFormat(Qt::PlainText);
+    instruction->setAlignment(Qt::AlignTop);
+
+    QLabel* instruction_list = new QLabel(format_instructions(intr.instructions));
+    instruction_list->setTextFormat(Qt::PlainText);
+    instruction_list->setFont(monospace);
+
+    QHBoxLayout* instructions_layout = new QHBoxLayout;
+    instructions_layout->setAlignment(Qt::AlignLeft);
+    instructions_layout->addWidget(instruction);
+    instructions_layout->addWidget(instruction_list);
+
+    static const QString qs_description("Description");
+    QLabel* description_label = new QLabel(qs_description);
+    description_label->setFont(bold);
+    description_label->setTextFormat(Qt::PlainText);
+
+    QLabel* description = new QLabel(intr.description);
+    description->setTextFormat(Qt::PlainText);
+    description->setWordWrap(true);
+
+    static const QString qs_operation("Operation");
+    QLabel* operation_label = new QLabel(qs_operation);
+    operation_label->setFont(bold);
+    operation_label->setTextFormat(Qt::PlainText);
+
+    QLabel* operation = new QLabel(intr.operation);
+    operation->setFont(monospace);
+    operation->setTextFormat(Qt::PlainText);
 
     QVBoxLayout* layout = new QVBoxLayout;
-    layout->addWidget(new QLabel("<H1>Test Label</H1>"));
-    layout->addWidget(label2);
+    layout->addWidget(synopsis);
+    layout->addWidget(signature);
+    layout->addWidget(header);
+    layout->addLayout(instructions_layout);
+    layout->addWidget(description_label);
+    layout->addWidget(description);
+    layout->addWidget(operation_label);
+    layout->addWidget(operation);
 
-    Section* section = new Section("Test section", 300);
+    Section* section = new Section(name);
     section->setContentLayout(layout);
 
     return section;
 }
 
-
-QVBoxLayout* make_layout()
+MainLayout::MainLayout(QWidget* parent) : QVBoxLayout(parent)
 {
     QLineEdit* search_edit = new QLineEdit;
     search_edit->setPlaceholderText("_mm_search");
 
-    QListWidgetItem* test_item = new QListWidgetItem("Test Item");
-    test_item->setBackground(QBrush(QColor("blue"), Qt::SolidPattern));
-    test_item->setFlags(test_item->flags() | Qt::ItemIsUserCheckable);
-    test_item->setCheckState(Qt::Unchecked);
-
     QListWidget* tech_list = new QListWidget;
-    tech_list->setMinimumWidth(50);
-    tech_list->setMaximumWidth(100);
-    tech_list->addItem(test_item);
+    tech_list->setMinimumWidth(100);
+    tech_list->setMaximumWidth(200);
+
+    // filling up tech list
+    for (const auto& t : techs)
+    {
+        QListWidgetItem* item = new QListWidgetItem(t);
+        // item->setBackground(QBrush(QColor("blue"), Qt::SolidPattern));
+        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+        item->setCheckState(Qt::Unchecked);
+        tech_list->addItem(item);
+    }
 
     QVBoxLayout* tech_lay = new QVBoxLayout;
-    tech_lay->addWidget(new QLabel("<B>Technologies</B>"));
+    tech_lay->addWidget(new QLabel("<b>Technologies</b>"));
     tech_lay->addWidget(tech_list);
 
-    QVBoxLayout* data_lay = new QVBoxLayout;
-    data_lay->setAlignment(Qt::AlignTop);
-    for (int i = 0; i < 50; ++i)
-        data_lay->addWidget(make_section());
+    p_data_layout = new QVBoxLayout;
+    p_data_layout->setAlignment(Qt::AlignTop);
 
-    QWidget* data_wd = new QWidget;
-    data_wd->setLayout(data_lay);
+    p_data_widget = new QWidget;
+    p_data_widget->setLayout(p_data_layout);
 
     QScrollArea* data_scroll = new QScrollArea;
-    data_scroll->setWidget(data_wd);
+    data_scroll->setWidget(p_data_widget);
+    data_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     data_scroll->setWidgetResizable(true);
 
-    QHBoxLayout* layout1 = new QHBoxLayout;
-    layout1->setAlignment(Qt::AlignLeft);
-    layout1->addLayout(tech_lay);
-    layout1->addWidget(data_scroll);
-    
-    QVBoxLayout* main_layout = new QVBoxLayout;
-    main_layout->addWidget(search_edit, 0, Qt::AlignTop);
-    main_layout->addLayout(layout1);
+    QHBoxLayout* h_layout = new QHBoxLayout;
+    h_layout->setAlignment(Qt::AlignLeft);
+    h_layout->addLayout(tech_lay);
+    h_layout->addWidget(data_scroll);
 
-    return main_layout;
+    addWidget(search_edit, 0, Qt::AlignTop);
+    addLayout(h_layout);
+}
+
+void
+MainLayout::addIntrinsics(const Intrinsics& intrinsics)
+{
+    for (int i = 0; i < 100; ++i)
+      p_data_layout->addWidget(make_section(intrinsics[i]));
 }

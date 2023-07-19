@@ -5,6 +5,15 @@ project(iiguide CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Default Build Type is Release
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
+endif()
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+
+add_compile_options(-Wall -Wpedantic -Wextra)
+
 set(SOURCE_FILES
   src/main.cpp
   src/layout.cpp

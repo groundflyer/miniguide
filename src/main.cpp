@@ -38,27 +38,31 @@ int main(int argc, char* argv[])
 
     const ParseData data = parse_doc(&data_file);
 
-    qDebug() << "version: " << data.version;
-    qDebug() << "date: " << data.date;
+    // qDebug() << "version: " << data.version;
+    // qDebug() << "date: " << data.date;
 
-    for(const Intrinsic& i : data.intrinsics)
-    {
-        qDebug() << i.name << '\t' << i.tech;
-        qDebug() << "\tCategory:" << i.category;
-        qDebug() << "\tCPUID Flags: " << i.cpuids.join(" + ");
-        qDebug() << "\tDescription: " << i.description;
-        qDebug() << "\tOperation: " << i.operation;
-        qDebug() << "\tHeader: " << i.header;
-    }
+    // for(const Intrinsic& i : data.intrinsics)
+    // {
+    //     qDebug() << i.name << '\t' << i.tech;
+    //     qDebug() << "\tCategory:" << i.category;
+    //     qDebug() << "\tCPUID Flags: " << i.cpuids.join(" + ");
+    //     qDebug() << "\tDescription: " << i.description;
+    //     qDebug() << "\tOperation: " << i.operation;
+    //     qDebug() << "\tHeader: " << i.header;
+    // }
+    qDebug() << "Num intrinsics: " << data.intrinsics.count();
 
     QWidget window;
+    MainLayout* main_layout = new MainLayout;
 
     window.resize(settings.value("winsize", QSize(640, 480)).toSize());
     QObject::connect(&app, &QApplication::aboutToQuit, [&settings, &window](){ settings.setValue("winsize", window.size()); });
 
-    window.setLayout(make_layout());
+    window.setLayout(main_layout);
     window.setWindowTitle(app_name);
     window.show();
+
+    main_layout->addIntrinsics(data.intrinsics);
 
     return app.exec();
 }
