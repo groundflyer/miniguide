@@ -100,13 +100,15 @@ Section* make_section(const Intrinsic& intr)
 
     static const QString sign_html("<font color=darkBlue>%1</font> %2(%3)");
     QLabel* signature = new QLabel(sign_html.arg(intr.ret_type, intr.name, html_parms(intr.parms)));
-    signature->setTextFormat(Qt::RichText);
     signature->setFont(monospace);
+    signature->setTextFormat(Qt::RichText);
+    signature->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     static const QString inc_template("#include <%1>");
     QLabel* header = new QLabel(inc_template.arg(intr.header));
     header->setFont(monospace);
     header->setTextFormat(Qt::PlainText);
+    header->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     static const QString qs_instruction ("Instruction:");
     QLabel* instruction = new QLabel(qs_instruction);
@@ -150,7 +152,7 @@ Section* make_section(const Intrinsic& intr)
     layout->addWidget(operation_label);
     layout->addWidget(operation);
 
-    Section* section = new Section(name);
+    Section* section = new Section(name, 300);
     section->setContentLayout(layout);
 
     return section;
@@ -202,6 +204,6 @@ MainLayout::MainLayout(QWidget* parent) : QVBoxLayout(parent)
 void
 MainLayout::addIntrinsics(const Intrinsics& intrinsics)
 {
-    for (int i = 0; i < 100; ++i)
+    for (int i = 0; i < 50; ++i)
       p_data_layout->addWidget(make_section(intrinsics[i]));
 }
