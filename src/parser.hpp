@@ -39,9 +39,9 @@ struct Intrinsic
 struct ParsingError
 {
     enum {
-        NOT_XML,
+        NOT_OPEN,
         NOT_IIDATA
-    } reason = NOT_XML;
+    } reason = NOT_OPEN;
 };
 
 using Intrinsics = QVector<Intrinsic>;
