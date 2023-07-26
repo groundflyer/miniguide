@@ -18,7 +18,7 @@ set(SOURCE_FILES
   src/main.cpp
   src/layout.cpp
   src/parser.cpp
-  src/Section.cpp
+  src/details.cpp
 )
 
 find_package(Qt5 COMPONENTS Xml Widgets REQUIRED)

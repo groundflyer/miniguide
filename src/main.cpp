@@ -11,7 +11,6 @@
 #include <QDir>
 #include <QMessageBox>
 
-#include <QDebug>
 
 static const QString app_name("Intrinsics Guide");
 
