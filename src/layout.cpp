@@ -54,6 +54,7 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
 {
     QSet<QString> techs;
     QSet<QString> categories;
+    QSet<QString> cpuids;
     m_intrinsics_widgets.reserve(intrinsics.count());
     m_intrinsics_map.reserve(intrinsics.count());
 
@@ -61,6 +62,9 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
     {
         techs.insert(i.tech);
         categories.insert(i.category);
+
+        for (const QString& c : i.cpuids)
+            cpuids.insert(c);
 
         const QString tooltip = QString("%1 %2(%3)").arg(i.ret_type, i.name, format_parms(i.parms));
         QListWidgetItem* item = new QListWidgetItem(i.name);
@@ -70,8 +74,8 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
         m_intrinsics_map.insert(i.name, &i);
     }
 
+    // filling up categories
     QStringList cats = categories.values();
-    cats.sort();
     for (const QString &c : cats)
     {
         QListWidgetItem* item = new QListWidgetItem(c);
@@ -80,30 +84,71 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
         p_cat_list->addItem(item);
     }
 
-static QStringList tech_order =
-    {
-        "MMX",
-        "SSE",
-        "SSE2",
-        "SSE3",
-        "SSSE3",
-        "SSE4.1",
-        "SSE4.2",
-        "AVX",
-        "AVX2",
-        "FMA",
-        "AVX-512",
-        "KNC",
-        "SVML",
-        "Other"
-    };
+    const QStringList top_tech =
+        {
+            "MMX",
+            "SSE",
+            "SSE2",
+            "SSE3",
+            "SSSE3",
+            "SSE4.1",
+            "SSE4.2",
+            "AVX",
+            "AVX2",
+            "FMA",
+            "AVX512",
+            "KNC",
+            "SVML",
+            "Other"
+        };
 
- for (const QString &c : tech_order)
- {
-     QTreeWidgetItem *item = new QTreeWidgetItem;
-     item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-     item->setCheckState(0, Qt::Unchecked);
-     item->setText(0, c);
-     p_tech_tree->addTopLevelItem(item);
- }
+    QHash<QString, QStringList> subtech;
+    for (const QString& tt : top_tech)
+        subtech.insert(tt, QStringList());
+
+    for (const QString& cpuid : cpuids)
+    {
+        if (top_tech.contains(cpuid))
+            continue;
+
+        bool other = true;
+
+        for(auto it = top_tech.crbegin(); it != top_tech.crend(); ++it)
+        {
+            const QString& tt = *it;
+            if (cpuid != tt && cpuid.startsWith(tt))
+            {
+                subtech[tt].append(cpuid);
+                other = false;
+                break;
+            }
+        }
+
+        if (other)
+            subtech["Other"].append(cpuid);
+    }
+
+    for (const QString &tt : top_tech)
+    {
+        QTreeWidgetItem *item = new QTreeWidgetItem;
+        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+        item->setCheckState(0, Qt::Unchecked);
+        item->setText(0, tt);
+
+        QStringList& subs = subtech[tt];
+
+        if (!subs.empty())
+        {
+            subs.sort();
+            for (const QString& sub : subs)
+            {
+                QTreeWidgetItem *child = new QTreeWidgetItem(item);
+                child->setFlags(child->flags() | Qt::ItemIsUserCheckable);
+                child->setCheckState(0, Qt::Unchecked);
+                child->setText(0, sub);
+            }
+        }
+
+        p_tech_tree->addTopLevelItem(item);
+    }
 }
