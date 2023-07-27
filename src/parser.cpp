@@ -38,7 +38,7 @@ Intrinsic parse_intrinsic(const QDomNode& node)
         if (name == "category")
             ret.category = text;
         else if (name == "CPUID")
-            ret.cpuids.append(text);
+            ret.cpuids.insert(text);
         else if (name == "return")
             ret.ret_type = field.attributes().namedItem("type").nodeValue();
         else if (name == "parameter")

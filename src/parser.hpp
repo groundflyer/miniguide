@@ -7,6 +7,7 @@
 #include <QVector>
 #include <QFile>
 #include <QString>
+#include <QSet>
 
 
 struct Var
@@ -27,7 +28,7 @@ struct Intrinsic
     QString name;
     QString tech;
     QString category;
-    QStringList cpuids;
+    QSet<QString> cpuids;
     QString ret_type;
     QVector<Var> parms;
     QString description;
