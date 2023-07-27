@@ -15,18 +15,13 @@ MainLayout::MainLayout(QWidget* parent) : QVBoxLayout(parent)
     QLineEdit* search_edit = new QLineEdit;
     search_edit->setPlaceholderText("_mm_search");
 
-    p_tech_tree = new QTreeWidget;
-
-    p_cat_list = new QListWidget;
+    p_tech_tree->setHeaderHidden(true);
 
     QVBoxLayout* tech_lay = new QVBoxLayout;
     tech_lay->addWidget(new QLabel("<b>Technologies</b>"));
     tech_lay->addWidget(p_tech_tree);
     tech_lay->addWidget(new QLabel("<b>Categories</b>"));
     tech_lay->addWidget(p_cat_list);
-
-    p_name_list = new QListWidget;
-    p_details = new IntrinsicDetails;
 
     QHBoxLayout* h_layout = new QHBoxLayout;
     h_layout->setAlignment(Qt::AlignLeft);
@@ -76,6 +71,7 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
 
     // filling up categories
     QStringList cats = categories.values();
+    cats.sort();
     for (const QString &c : cats)
     {
         QListWidgetItem* item = new QListWidgetItem(c);
@@ -130,7 +126,7 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
 
     for (const QString &tt : top_tech)
     {
-        QTreeWidgetItem *item = new QTreeWidgetItem;
+        QTreeWidgetItem *item = new QTreeWidgetItem(p_tech_tree);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(0, Qt::Unchecked);
         item->setText(0, tt);
@@ -148,7 +144,5 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
                 child->setText(0, sub);
             }
         }
-
-        p_tech_tree->addTopLevelItem(item);
     }
 }
