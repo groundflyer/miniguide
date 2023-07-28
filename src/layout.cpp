@@ -4,9 +4,8 @@
 #include <QBrush>
 #include <QLabel>
 #include <QWidget>
-#include <QStringList>
 
-#include <QDebug>
+#include <functional>
 
 MainLayout::MainLayout(QWidget* parent) : QVBoxLayout(parent)
 {
@@ -65,6 +64,93 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
         m_intrinsics_map.insert(i.name, i);
     }
 
+    fill_tech_tree(cpuids);
+    fill_categories_list(categories);
+
+    auto slot = [&](auto...){ filter(); };
+
+    QObject::connect(p_tech_tree, &QTreeWidget::itemChanged, slot);
+    QObject::connect(p_cat_list, &QListWidget::itemChanged, slot);
+    QObject::connect(p_search_edit, &QLineEdit::textChanged, slot);
+}
+
+QString
+MainLayout::search_text() const
+{
+    return p_search_edit->text();
+}
+
+template <typename Widgets, typename ItemCheck, typename ItemText>
+QSet<QString>
+selected_widgets(const Widgets& widgets, ItemCheck&& item_check, ItemText&& item_text) noexcept
+{
+    QSet<QString> ret;
+
+    for (const auto& item : widgets)
+        if (item_check(item) == Qt::Checked)
+            ret.insert(item_text(item));
+
+    return ret;
+}
+
+auto
+tree_item_check(const QTreeWidgetItem* item) noexcept
+{
+    return item->checkState(0);
+}
+
+QString
+tree_item_text(const QTreeWidgetItem* item) noexcept
+{
+    return item->text(0);
+}
+
+QSet<QString>
+MainLayout::selected_techs() const
+{
+    return selected_widgets(m_tech_widgets, tree_item_check, tree_item_text);
+}
+
+QSet<QString>
+MainLayout::selected_cpuids() const
+{
+    return selected_widgets(m_cpuid_widgets, tree_item_check, tree_item_text);
+}
+
+QSet<QString>
+MainLayout::selected_categories() const
+{
+    return selected_widgets(m_category_widgets, std::mem_fn(&QListWidgetItem::checkState), std::mem_fn(&QListWidgetItem::text));
+}
+
+void
+MainLayout::filter()
+{
+    const QString search_name = search_text();
+    const QSet<QString> techs = selected_techs();
+    const QSet<QString> cpuids = selected_cpuids();
+    const QSet<QString> cats = selected_categories();
+
+    for (QListWidgetItem* item : m_intrinsics_widgets)
+    {
+        const QString iname = item->text();
+        const Intrinsic& i = m_intrinsics_map[iname];
+
+        const bool name_match = search_name.isEmpty() || iname.contains(search_name, Qt::CaseInsensitive);
+        const bool cat_match = cats.empty() || cats.contains(i.category);
+        const bool tech_match = (techs.empty() && cpuids.empty()) || techs.contains(i.tech) || cpuids.intersects(i.cpuids);
+
+        const bool match = name_match &&
+            tech_match &&
+            cat_match;
+
+        item->setHidden(!match);
+    }
+}
+
+void
+MainLayout::fill_categories_list(const QSet<QString>& categories)
+{
     // filling up categories
     QStringList cats = categories.values();
     cats.sort();
@@ -78,43 +164,33 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
         p_cat_list->addItem(item);
         m_category_widgets.append(item);
     }
+}
 
-    const QStringList top_tech =
-        {
-            "MMX",
-            "SSE",
-            "SSE2",
-            "SSE3",
-            "SSSE3",
-            "SSE4.1",
-            "SSE4.2",
-            "AVX",
-            "AVX2",
-            "FMA",
-            "AVX-512",
-            "KNC",
-            "SVML",
-            "Other"
-        };
-
+void
+MainLayout::fill_tech_tree(const QSet<QString>& cpuids)
+{
     QHash<QString, QStringList> subtech;
-    for (const QString& tt : top_tech)
+
+    for (const QString& tt : techs)
         subtech.insert(tt, QStringList());
 
     for (const QString& cpuid : cpuids)
     {
-        if (top_tech.contains(cpuid))
+        if (techs.contains(cpuid))
             continue;
 
         bool other = true;
 
-        for(auto it = top_tech.crbegin(); it != top_tech.crend(); ++it)
+        for(auto it = techs.crbegin(); it != techs.crend(); ++it)
         {
             QString tt = *it;
-            // AVX-512 cpuids are actually AVX512BLABLABLA
+            // AVX-512 cpuids are actually AVX512_BLABLABLA
+            // so we remove '-' when comparing
             tt.remove('-');
+
             if (cpuid != tt && cpuid.startsWith(tt))
             {
+                // but the key is actuall tech name
                 subtech[*it].append(cpuid);
                 other = false;
                 break;
@@ -125,7 +201,7 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
             subtech["Other"].append(cpuid);
     }
 
-    for (const QString &tt : top_tech)
+    for (const QString &tt : techs)
     {
         QTreeWidgetItem *item = new QTreeWidgetItem(p_tech_tree);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
@@ -146,71 +222,8 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
                 child->setCheckState(0, Qt::Unchecked);
                 child->setText(0, sub);
 
-                m_tech_widgets.append(child);
+                m_cpuid_widgets.append(child);
             }
         }
-    }
-
-    auto slot = [&](auto...){ filter(); };
-
-    QObject::connect(p_tech_tree, &QTreeWidget::itemChanged, slot);
-    QObject::connect(p_cat_list, &QListWidget::itemChanged, slot);
-    QObject::connect(p_search_edit, &QLineEdit::textChanged, slot);
-}
-
-QString
-MainLayout::search_text() const
-{
-    return p_search_edit->text();
-}
-
-QSet<QString>
-MainLayout::selected_techs() const
-{
-    QSet<QString> ret;
-
-    for (QTreeWidgetItem* item : m_tech_widgets)
-        if (item->checkState(0) == Qt::Checked)
-            ret.insert(item->text(0));
-
-
-    return ret;
-}
-
-QSet<QString>
-MainLayout::selected_categories() const
-{
-    QSet<QString> ret;
-
-    for (QListWidgetItem* item : m_category_widgets)
-        if (item->checkState() == Qt::Checked)
-            ret.insert(item->text());
-
-    return ret;
-}
-
-void
-MainLayout::filter()
-{
-    const QString search_name = search_text();
-    const QSet<QString> techs = selected_techs();
-    const QSet<QString> cats = selected_categories();
-
-    for (QListWidgetItem* item : m_intrinsics_widgets)
-    {
-        const QString iname = item->text();
-        const Intrinsic& i = m_intrinsics_map[iname];
-
-        const bool name_match = search_name.isEmpty() || iname.contains(search_name, Qt::CaseInsensitive);
-        const bool tech_match = techs.empty() || techs.contains(i.tech);
-        // const bool cpuid_match = techs.empty() || techs.intersects(i.cpuids);
-        const bool cat_match = cats.empty() || cats.contains(i.category);
-
-        const bool match = name_match &&
-            tech_match &&
-            // cpuid_match &&
-            cat_match;
-
-        item->setHidden(!match);
     }
 }
