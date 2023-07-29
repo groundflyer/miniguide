@@ -48,17 +48,15 @@ IntrinsicDetails::IntrinsicDetails(QWidget* parent) : QWidget(parent)
     p_header->setTextFormat(Qt::PlainText);
     p_header->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
-    static const QString qs_instruction ("Instruction:");
-    QLabel* instruction = new QLabel(qs_instruction);
-    instruction->setTextFormat(Qt::PlainText);
-    instruction->setAlignment(Qt::AlignTop);
+    p_instructions_label->setTextFormat(Qt::PlainText);
+    p_instructions_label->setAlignment(Qt::AlignTop);
 
     p_instructions->setTextFormat(Qt::PlainText);
     p_instructions->setFont(monospace);
 
     QHBoxLayout* instructions_layout = new QHBoxLayout;
     instructions_layout->setAlignment(Qt::AlignLeft);
-    instructions_layout->addWidget(instruction);
+    instructions_layout->addWidget(p_instructions_label);
     instructions_layout->addWidget(p_instructions);
 
     static const QString qs_description("Description");
@@ -68,40 +66,46 @@ IntrinsicDetails::IntrinsicDetails(QWidget* parent) : QWidget(parent)
 
     p_description->setTextFormat(Qt::PlainText);
     p_description->setWordWrap(true);
+    p_description->setScaledContents(true);
 
-    static const QString qs_operation("Operation");
-    QLabel* operation_label = new QLabel(qs_operation);
-    operation_label->setFont(bold);
-    operation_label->setTextFormat(Qt::PlainText);
+    p_operation_label->setFont(bold);
+    p_operation_label->setTextFormat(Qt::PlainText);
 
     p_operation->setFont(monospace);
     p_operation->setTextFormat(Qt::PlainText);
 
     QVBoxLayout* layout = new QVBoxLayout;
+    layout->setAlignment(Qt::AlignTop);
     layout->addWidget(synopsis);
     layout->addWidget(p_signature);
     layout->addWidget(p_header);
     layout->addLayout(instructions_layout);
     layout->addWidget(description_label);
     layout->addWidget(p_description);
-    layout->addWidget(operation_label);
+    layout->addWidget(p_operation_label);
     layout->addWidget(p_operation);
 
     setLayout(layout);
 }
 
 void
-IntrinsicDetails::setIntrinsic(const Intrinsic& intr)
+IntrinsicDetails::setIntrinsic(const Intrinsic& i)
 {
     static const QString sign_html("<font color=darkBlue>%1</font> %2(%3)");
-
-    p_signature->setText(sign_html.arg(intr.ret_type, intr.name, html_parms(intr.parms)));
+    p_signature->setText(sign_html.arg(i.ret_type, i.name, html_parms(i.parms)));
 
     static const QString inc_template("#include <%1>");
-    p_header->setText(inc_template.arg(intr.header));
+    p_header->setText(inc_template.arg(i.header));
 
-    p_instructions->setText(format_instructions(intr.instructions));
-    p_description->setText(intr.description);
-    p_operation->setText(intr.operation);
+    p_instructions_label->setHidden(i.instructions.empty());
+    p_instructions->setHidden(i.instructions.empty());
+    if (!i.instructions.empty())
+        p_instructions->setText(format_instructions(i.instructions));
 
+    p_description->setText(i.description);
+
+    p_operation_label->setHidden(i.operation.isEmpty());
+    p_operation->setHidden(i.operation.isEmpty());
+    if (!i.operation.isEmpty())
+        p_operation->setText(i.operation);
 }

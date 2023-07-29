@@ -19,8 +19,10 @@ class IntrinsicDetails : public QWidget
 
     QLabel* p_signature = new QLabel;
     QLabel* p_header = new QLabel;
+    QLabel* p_instructions_label = new QLabel("Instruction:");
     QLabel* p_instructions = new QLabel;
     QLabel* p_description = new QLabel;
+    QLabel* p_operation_label = new QLabel("Operation:");
     QLabel* p_operation = new QLabel;
 
 public:

@@ -17,6 +17,8 @@
 #include <QLineEdit>
 #include <QSet>
 #include <QStringList>
+#include <QScrollArea>
+
 
 class MainLayout : public QVBoxLayout
 {
@@ -45,6 +47,7 @@ class MainLayout : public QVBoxLayout
     QListWidget* p_cat_list = new QListWidget;
     QListWidget* p_name_list = new QListWidget;
     IntrinsicDetails* p_details = new IntrinsicDetails;
+    QScrollArea* p_details_scroll = new QScrollArea;
     QVector<QListWidgetItem*> m_intrinsics_widgets;
     QVector<QListWidgetItem*> m_category_widgets;
     QVector<QTreeWidgetItem*> m_tech_widgets;

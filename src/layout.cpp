@@ -19,11 +19,15 @@ MainLayout::MainLayout(QWidget* parent) : QVBoxLayout(parent)
     tech_lay->addWidget(new QLabel("<b>Categories</b>"));
     tech_lay->addWidget(p_cat_list);
 
+    p_details_scroll->setWidget(p_details);
+    p_details_scroll->setWidgetResizable(true);
+    p_details_scroll->setHidden(true);
+
     QHBoxLayout* h_layout = new QHBoxLayout;
     h_layout->setAlignment(Qt::AlignLeft);
     h_layout->addLayout(tech_lay);
     h_layout->addWidget(p_name_list);
-    h_layout->addWidget(p_details);
+    h_layout->addWidget(p_details_scroll);
 
     addWidget(p_search_edit, 0, Qt::AlignTop);
     addLayout(h_layout);
@@ -67,11 +71,17 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
     fill_tech_tree(cpuids);
     fill_categories_list(categories);
 
-    auto slot = [&](auto...){ filter(); };
+    auto slot = [&](auto...){
+        filter();
+    };
 
     QObject::connect(p_tech_tree, &QTreeWidget::itemChanged, slot);
     QObject::connect(p_cat_list, &QListWidget::itemChanged, slot);
     QObject::connect(p_search_edit, &QLineEdit::textChanged, slot);
+    QObject::connect(p_name_list, &QListWidget::itemClicked, [&](QListWidgetItem* item) {
+        p_details->setIntrinsic(m_intrinsics_map[item->text()]);
+        p_details_scroll->setHidden(false);
+    });
 }
 
 QString
