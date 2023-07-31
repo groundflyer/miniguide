@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// layout.hpp
+// mainwindow.hpp
 //
 
 #pragma once
@@ -7,6 +7,7 @@
 #include "parser.hpp"
 #include "details.hpp"
 
+#include <QMainWindow>
 #include <QVBoxLayout>
 #include <QTreeWidget>
 #include <QListWidget>
@@ -20,7 +21,7 @@
 #include <QScrollArea>
 
 
-class MainLayout : public QVBoxLayout
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
@@ -64,7 +65,7 @@ class MainLayout : public QVBoxLayout
     filter();
 
 public:
-    MainLayout(QWidget* parent = nullptr);
+    MainWindow(QWidget* parent = nullptr);
 
     void
     addIntrinsics(const Intrinsics&);

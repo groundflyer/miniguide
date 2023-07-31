@@ -1,4 +1,4 @@
-#include "layout.hpp"
+#include "mainwindow.hpp"
 
 #include <QVBoxLayout>
 #include <QBrush>
@@ -7,7 +7,7 @@
 
 #include <functional>
 
-MainLayout::MainLayout(QWidget* parent) : QVBoxLayout(parent)
+MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 {
     p_search_edit->setPlaceholderText("_mm_search");
 
@@ -29,8 +29,14 @@ MainLayout::MainLayout(QWidget* parent) : QVBoxLayout(parent)
     h_layout->addWidget(p_name_list);
     h_layout->addWidget(p_details_scroll);
 
-    addWidget(p_search_edit, 0, Qt::AlignTop);
-    addLayout(h_layout);
+    QVBoxLayout* top_layout = new QVBoxLayout;
+    top_layout->addWidget(p_search_edit, 0, Qt::AlignTop);
+    top_layout->addLayout(h_layout);
+
+    QWidget* central = new QWidget;
+    central->setLayout(top_layout);
+
+    setCentralWidget(central);
 }
 
 QString format_parms(const QVector<Var>& parms) noexcept
@@ -45,7 +51,7 @@ QString format_parms(const QVector<Var>& parms) noexcept
 
 
 void
-MainLayout::addIntrinsics(const Intrinsics& intrinsics)
+MainWindow::addIntrinsics(const Intrinsics& intrinsics)
 {
     QSet<QString> techs;
     QSet<QString> categories;
@@ -85,7 +91,7 @@ MainLayout::addIntrinsics(const Intrinsics& intrinsics)
 }
 
 QString
-MainLayout::search_text() const
+MainWindow::search_text() const
 {
     return p_search_edit->text();
 }
@@ -116,25 +122,25 @@ tree_item_text(const QTreeWidgetItem* item) noexcept
 }
 
 QSet<QString>
-MainLayout::selected_techs() const
+MainWindow::selected_techs() const
 {
     return selected_widgets(m_tech_widgets, tree_item_check, tree_item_text);
 }
 
 QSet<QString>
-MainLayout::selected_cpuids() const
+MainWindow::selected_cpuids() const
 {
     return selected_widgets(m_cpuid_widgets, tree_item_check, tree_item_text);
 }
 
 QSet<QString>
-MainLayout::selected_categories() const
+MainWindow::selected_categories() const
 {
     return selected_widgets(m_category_widgets, std::mem_fn(&QListWidgetItem::checkState), std::mem_fn(&QListWidgetItem::text));
 }
 
 void
-MainLayout::filter()
+MainWindow::filter()
 {
     const QString search_name = search_text();
     const QSet<QString> techs = selected_techs();
@@ -159,7 +165,7 @@ MainLayout::filter()
 }
 
 void
-MainLayout::fill_categories_list(const QSet<QString>& categories)
+MainWindow::fill_categories_list(const QSet<QString>& categories)
 {
     // filling up categories
     QStringList cats = categories.values();
@@ -177,7 +183,7 @@ MainLayout::fill_categories_list(const QSet<QString>& categories)
 }
 
 void
-MainLayout::fill_tech_tree(const QSet<QString>& cpuids)
+MainWindow::fill_tech_tree(const QSet<QString>& cpuids)
 {
     QHash<QString, QStringList> subtech;
 

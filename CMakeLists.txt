@@ -16,7 +16,7 @@ add_compile_options(-Wall -Wpedantic -Wextra)
 
 set(SOURCE_FILES
   src/main.cpp
-  src/layout.cpp
+  src/mainwindow.cpp
   src/parser.cpp
   src/details.cpp
 )

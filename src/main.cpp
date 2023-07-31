@@ -1,6 +1,6 @@
 // -*- C++ -*-
 
-#include "layout.hpp"
+#include "mainwindow.hpp"
 #include "parser.hpp"
 
 #include <QApplication>
@@ -26,13 +26,10 @@ int main(int argc, char* argv[])
     if (data_path_v.canConvert<QString>())
         data_path = data_path_v.toString();
 
-    QWidget window;
-    MainLayout* main_layout = new MainLayout;
-
+    MainWindow window;
     window.resize(settings.value("winsize", QSize(640, 480)).toSize());
     QObject::connect(&app, &QApplication::aboutToQuit, [&settings, &window](){ settings.setValue("winsize", window.size()); });
 
-    window.setLayout(main_layout);
     window.setWindowTitle(app_name);
     window.show();
 
@@ -50,7 +47,7 @@ int main(int argc, char* argv[])
     {
         const ParseData data = parse_doc(&data_file);
 
-        main_layout->addIntrinsics(data.intrinsics);
+        window.addIntrinsics(data.intrinsics);
     }
     catch (const ParsingError& ex)
     {
