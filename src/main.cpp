@@ -41,19 +41,7 @@ int main(int argc, char* argv[])
         settings.setValue(st_split2, split2);
     };
 
-    // loading settings
-    {
-        window.resize(settings.value(st_winsize, QSize(640, 480)).toSize());
-        const QVariant s1 = settings.value(st_split1);
-        const QVariant s2 = settings.value(st_split2);
-        if (s1.isValid() && s2.isValid())
-            window.restoreSplittersState(s1.toByteArray(), s2.toByteArray());
-    }
-
     QObject::connect(&app, &QApplication::aboutToQuit, settings_saver);
-
-    window.setWindowTitle(app_name);
-    window.show();
 
     QFile data_file(data_path);
     if (!data_file.exists())
@@ -90,6 +78,18 @@ int main(int argc, char* argv[])
         }
         msg.exec();
     }
+
+    // loading settings
+    {
+        window.resize(settings.value(st_winsize, QSize(640, 480)).toSize());
+        const QVariant s1 = settings.value(st_split1);
+        const QVariant s2 = settings.value(st_split2);
+        if (s1.isValid() && s2.isValid())
+            window.restoreSplittersState(s1.toByteArray(), s2.toByteArray());
+    }
+
+    window.setWindowTitle(app_name);
+    window.show();
 
     return app.exec();
 }

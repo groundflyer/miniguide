@@ -1,9 +1,11 @@
 #include "mainwindow.hpp"
+#include "details.hpp"
 
 #include <QVBoxLayout>
 #include <QBrush>
 #include <QLabel>
 #include <QWidget>
+#include <QDockWidget>
 
 #include <functional>
 
@@ -30,10 +32,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
     p_left_split->setChildrenCollapsible(false);
     p_left_split->addWidget(techs_widget);
     p_left_split->addWidget(cats_widget);
-
-    p_details_scroll->setWidget(p_details);
-    p_details_scroll->setWidgetResizable(true);
-    p_details_scroll->setHidden(true);
 
     p_top_split->setChildrenCollapsible(false);
     p_top_split->setSizePolicy(p_name_list->sizePolicy());
@@ -97,8 +95,7 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
     QObject::connect(p_cat_list, &QListWidget::itemChanged, slot);
     QObject::connect(p_search_edit, &QLineEdit::textChanged, slot);
     QObject::connect(p_name_list, &QListWidget::itemClicked, [&](QListWidgetItem* item) {
-        p_details->setIntrinsic(m_intrinsics_map[item->text()]);
-        p_details_scroll->setHidden(false);
+        showIntrinsic(m_intrinsics_map[item->text()]);
     });
 }
 
@@ -267,4 +264,14 @@ MainWindow::restoreSplittersState(const QByteArray& s1, const QByteArray& s2)
 {
     p_left_split->restoreState(s1);
     p_top_split->restoreState(s2);
+}
+
+
+void
+MainWindow::showIntrinsic(const Intrinsic& i)
+{
+    IntrinsicDetails* id = new IntrinsicDetails(i);
+    QDockWidget* dw = new QDockWidget;
+    dw->setWidget(id);
+    addDockWidget(Qt::RightDockWidgetArea, dw);
 }

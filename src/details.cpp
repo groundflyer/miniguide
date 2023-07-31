@@ -1,5 +1,6 @@
 #include "details.hpp"
 
+#include <QWidget>
 #include <QString>
 #include <QStringList>
 #include <QVector>
@@ -30,7 +31,7 @@ QString format_instructions(const QVector<Instruction>& ins) noexcept
     return list.join('\n');
 }
 
-IntrinsicDetails::IntrinsicDetails(QWidget* parent) : QWidget(parent)
+IntrinsicDetails::IntrinsicDetails(const Intrinsic& i, QWidget* parent) : QScrollArea(parent)
 {
     monospace.setStyleHint(QFont::TypeWriter);
     bold.setBold(true);
@@ -85,7 +86,13 @@ IntrinsicDetails::IntrinsicDetails(QWidget* parent) : QWidget(parent)
     layout->addWidget(p_operation_label);
     layout->addWidget(p_operation);
 
-    setLayout(layout);
+    QWidget* widget = new QWidget;
+    widget->setLayout(layout);
+
+    setWidget(widget);
+    setWidgetResizable(true);
+
+    setIntrinsic(i);
 }
 
 void

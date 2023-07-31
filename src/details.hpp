@@ -6,11 +6,11 @@
 
 #include "parser.hpp"
 
-#include <QWidget>
+#include <QScrollArea>
 #include <QLabel>
 #include <QFont>
 
-class IntrinsicDetails : public QWidget
+class IntrinsicDetails : public QScrollArea
 {
     Q_OBJECT
 
@@ -25,8 +25,8 @@ class IntrinsicDetails : public QWidget
     QLabel* p_operation_label = new QLabel("Operation:");
     QLabel* p_operation = new QLabel;
 
-public:
-    IntrinsicDetails(QWidget* parent = nullptr);
-
     void setIntrinsic(const Intrinsic&);
+
+public:
+    IntrinsicDetails(const Intrinsic& i, QWidget* parent = nullptr);
 };

@@ -5,7 +5,6 @@
 #pragma once
 
 #include "parser.hpp"
-#include "details.hpp"
 
 #include <QMainWindow>
 #include <QTreeWidget>
@@ -17,7 +16,6 @@
 #include <QLineEdit>
 #include <QSet>
 #include <QStringList>
-#include <QScrollArea>
 #include <QSplitter>
 
 #include <utility>
@@ -48,8 +46,6 @@ class MainWindow : public QMainWindow
     QTreeWidget* p_tech_tree = new QTreeWidget;
     QListWidget* p_cat_list = new QListWidget;
     QListWidget* p_name_list = new QListWidget;
-    IntrinsicDetails* p_details = new IntrinsicDetails;
-    QScrollArea* p_details_scroll = new QScrollArea;
     QSplitter* p_left_split = new QSplitter(Qt::Vertical);
     QSplitter* p_top_split = new QSplitter(Qt::Horizontal);
     QVector<QListWidgetItem*> m_intrinsics_widgets;
@@ -66,6 +62,9 @@ class MainWindow : public QMainWindow
 
     void
     filter();
+
+    void
+    showIntrinsic(const Intrinsic& i);
 
 public:
     MainWindow(QWidget* parent = nullptr);
