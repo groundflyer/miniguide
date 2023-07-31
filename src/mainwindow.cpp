@@ -16,22 +16,34 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
     QVBoxLayout* tech_lay = new QVBoxLayout;
     tech_lay->addWidget(new QLabel("<b>Technologies</b>"));
     tech_lay->addWidget(p_tech_tree);
-    tech_lay->addWidget(new QLabel("<b>Categories</b>"));
-    tech_lay->addWidget(p_cat_list);
+
+    QWidget* techs_widget = new QWidget;
+    techs_widget->setLayout(tech_lay);
+
+    QVBoxLayout* cat_lay = new QVBoxLayout;
+    cat_lay->addWidget(new QLabel("<b>Categories</b>"));
+    cat_lay->addWidget(p_cat_list);
+
+    QWidget* cats_widget = new QWidget;
+    cats_widget->setLayout(cat_lay);
+
+    p_left_split->setChildrenCollapsible(false);
+    p_left_split->addWidget(techs_widget);
+    p_left_split->addWidget(cats_widget);
 
     p_details_scroll->setWidget(p_details);
     p_details_scroll->setWidgetResizable(true);
     p_details_scroll->setHidden(true);
 
-    QHBoxLayout* h_layout = new QHBoxLayout;
-    h_layout->setAlignment(Qt::AlignLeft);
-    h_layout->addLayout(tech_lay);
-    h_layout->addWidget(p_name_list);
-    h_layout->addWidget(p_details_scroll);
+    p_top_split->setChildrenCollapsible(false);
+    p_top_split->setSizePolicy(p_name_list->sizePolicy());
+    p_top_split->addWidget(p_left_split);
+    p_top_split->addWidget(p_name_list);
 
     QVBoxLayout* top_layout = new QVBoxLayout;
-    top_layout->addWidget(p_search_edit, 0, Qt::AlignTop);
-    top_layout->addLayout(h_layout);
+    top_layout->setAlignment(Qt::AlignTop);
+    top_layout->addWidget(p_search_edit);
+    top_layout->addWidget(p_top_split);
 
     QWidget* central = new QWidget;
     central->setLayout(top_layout);
@@ -91,7 +103,7 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
 }
 
 QString
-MainWindow::search_text() const
+MainWindow::searchText() const
 {
     return p_search_edit->text();
 }
@@ -122,19 +134,19 @@ tree_item_text(const QTreeWidgetItem* item) noexcept
 }
 
 QSet<QString>
-MainWindow::selected_techs() const
+MainWindow::selectedTechs() const
 {
     return selected_widgets(m_tech_widgets, tree_item_check, tree_item_text);
 }
 
 QSet<QString>
-MainWindow::selected_cpuids() const
+MainWindow::selectedCPUIDs() const
 {
     return selected_widgets(m_cpuid_widgets, tree_item_check, tree_item_text);
 }
 
 QSet<QString>
-MainWindow::selected_categories() const
+MainWindow::selectedCategories() const
 {
     return selected_widgets(m_category_widgets, std::mem_fn(&QListWidgetItem::checkState), std::mem_fn(&QListWidgetItem::text));
 }
@@ -142,10 +154,10 @@ MainWindow::selected_categories() const
 void
 MainWindow::filter()
 {
-    const QString search_name = search_text();
-    const QSet<QString> techs = selected_techs();
-    const QSet<QString> cpuids = selected_cpuids();
-    const QSet<QString> cats = selected_categories();
+    const QString search_name = searchText();
+    const QSet<QString> techs = selectedTechs();
+    const QSet<QString> cpuids = selectedCPUIDs();
+    const QSet<QString> cats = selectedCategories();
 
     for (QListWidgetItem* item : m_intrinsics_widgets)
     {
@@ -242,4 +254,17 @@ MainWindow::fill_tech_tree(const QSet<QString>& cpuids)
             }
         }
     }
+}
+
+std::pair<QByteArray, QByteArray>
+MainWindow::saveSplittersState() const
+{
+    return { p_left_split->saveState(), p_top_split->saveState() };
+}
+
+void
+MainWindow::restoreSplittersState(const QByteArray& s1, const QByteArray& s2)
+{
+    p_left_split->restoreState(s1);
+    p_top_split->restoreState(s2);
 }
