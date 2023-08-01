@@ -327,7 +327,7 @@ MainWindow::shownIntrinsics() const
     QStringList ret;
 
     for (auto it = m_dock_widgets.cbegin(); it != m_dock_widgets.cend(); ++it)
-        if (!it.value()->isHidden())
+        if (!it.value()->isHidden() || it.value()->isFloating())
             ret.append(it.key());
 
     return ret;
