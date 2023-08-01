@@ -17,6 +17,7 @@
 #include <QSet>
 #include <QStringList>
 #include <QSplitter>
+#include <QDockWidget>
 
 #include <utility>
 
@@ -53,12 +54,13 @@ class MainWindow : public QMainWindow
     QVector<QTreeWidgetItem*> m_tech_widgets;
     QVector<QTreeWidgetItem*> m_cpuid_widgets;
     QHash<QString, Intrinsic> m_intrinsics_map;
+    QHash<QString, QDockWidget*> m_dock_widgets;
 
     void
-    fill_tech_tree(const QSet<QString>& cpuids);
+    fillTechTree(const QSet<QString>& cpuids);
 
     void
-    fill_categories_list(const QSet<QString>& categories);
+    fillCategoriesList(const QSet<QString>& categories);
 
     void
     filter();
@@ -75,14 +77,32 @@ public:
     QString
     searchText() const;
 
+    void
+    setSearch(const QString&);
+
     QSet<QString>
     selectedTechs() const;
+
+    void
+    selectTechs(const QStringList&);
 
     QSet<QString>
     selectedCategories() const;
 
+    void
+    selectCategories(const QStringList&);
+
     QSet<QString>
     selectedCPUIDs() const;
+
+    void
+    selectCPUIDs(const QStringList&);
+
+    QStringList
+    shownIntrinsics() const;
+
+    void
+    showIntrinsics(const QStringList&);
 
     std::pair<QByteArray, QByteArray>
     saveSplittersState() const;

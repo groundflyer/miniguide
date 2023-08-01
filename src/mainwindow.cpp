@@ -5,7 +5,6 @@
 #include <QBrush>
 #include <QLabel>
 #include <QWidget>
-#include <QDockWidget>
 
 #include <functional>
 
@@ -84,8 +83,8 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
         m_intrinsics_map.insert(i.name, i);
     }
 
-    fill_tech_tree(cpuids);
-    fill_categories_list(categories);
+    fillTechTree(cpuids);
+    fillCategoriesList(categories);
 
     auto slot = [&](auto...){
         filter();
@@ -105,6 +104,12 @@ MainWindow::searchText() const
     return p_search_edit->text();
 }
 
+void
+MainWindow::setSearch(const QString& s)
+{
+    p_search_edit->setText(s);
+}
+
 template <typename Widgets, typename ItemCheck, typename ItemText>
 QSet<QString>
 selected_widgets(const Widgets& widgets, ItemCheck&& item_check, ItemText&& item_text) noexcept
@@ -118,10 +123,26 @@ selected_widgets(const Widgets& widgets, ItemCheck&& item_check, ItemText&& item
     return ret;
 }
 
+template <typename Widgets, typename ItemText, typename ItemCheck>
+void
+select_widgets(const QStringList& ss, Widgets& widgets, ItemText&& item_text, ItemCheck&& item_check) noexcept
+{
+    for (const QString& s : ss)
+        for (auto& item : widgets)
+            if (item_text(item) == s)
+                item_check(item, Qt::Checked);
+}
+
 auto
 tree_item_check(const QTreeWidgetItem* item) noexcept
 {
     return item->checkState(0);
+}
+
+void
+tree_item_set_check(QTreeWidgetItem* item, const Qt::CheckState cs) noexcept
+{
+    item->setCheckState(0, cs);
 }
 
 QString
@@ -136,16 +157,34 @@ MainWindow::selectedTechs() const
     return selected_widgets(m_tech_widgets, tree_item_check, tree_item_text);
 }
 
+void
+MainWindow::selectTechs(const QStringList& ss)
+{
+    select_widgets(ss, m_tech_widgets, tree_item_text, tree_item_set_check);
+}
+
 QSet<QString>
 MainWindow::selectedCPUIDs() const
 {
     return selected_widgets(m_cpuid_widgets, tree_item_check, tree_item_text);
 }
 
+void
+MainWindow::selectCPUIDs(const QStringList& ss)
+{
+    select_widgets(ss, m_cpuid_widgets, tree_item_text, tree_item_set_check);
+}
+
 QSet<QString>
 MainWindow::selectedCategories() const
 {
     return selected_widgets(m_category_widgets, std::mem_fn(&QListWidgetItem::checkState), std::mem_fn(&QListWidgetItem::text));
+}
+
+void
+MainWindow::selectCategories(const QStringList& ss)
+{
+    select_widgets(ss, m_category_widgets, std::mem_fn(&QListWidgetItem::text), std::mem_fn(&QListWidgetItem::setCheckState));
 }
 
 void
@@ -174,7 +213,7 @@ MainWindow::filter()
 }
 
 void
-MainWindow::fill_categories_list(const QSet<QString>& categories)
+MainWindow::fillCategoriesList(const QSet<QString>& categories)
 {
     // filling up categories
     QStringList cats = categories.values();
@@ -192,7 +231,7 @@ MainWindow::fill_categories_list(const QSet<QString>& categories)
 }
 
 void
-MainWindow::fill_tech_tree(const QSet<QString>& cpuids)
+MainWindow::fillTechTree(const QSet<QString>& cpuids)
 {
     QHash<QString, QStringList> subtech;
 
@@ -266,12 +305,40 @@ MainWindow::restoreSplittersState(const QByteArray& s1, const QByteArray& s2)
     p_top_split->restoreState(s2);
 }
 
-
 void
 MainWindow::showIntrinsic(const Intrinsic& i)
 {
-    IntrinsicDetails* id = new IntrinsicDetails(i);
-    QDockWidget* dw = new QDockWidget;
-    dw->setWidget(id);
-    addDockWidget(Qt::RightDockWidgetArea, dw);
+    if (m_dock_widgets.contains(i.name))
+    {
+        m_dock_widgets[i.name]->setFocus(Qt::OtherFocusReason);
+    } else {
+        IntrinsicDetails *id = new IntrinsicDetails(i);
+        QDockWidget *dw = new QDockWidget(i.name);
+        dw->setObjectName(i.name);
+        dw->setWidget(id);
+        addDockWidget(Qt::RightDockWidgetArea, dw);
+        m_dock_widgets.insert(i.name, dw);
+    }
+}
+
+QStringList
+MainWindow::shownIntrinsics() const
+{
+    QStringList ret;
+
+    for (auto it = m_dock_widgets.cbegin(); it != m_dock_widgets.cend(); ++it)
+        if (!it.value()->isHidden())
+            ret.append(it.key());
+
+    return ret;
+}
+
+void
+MainWindow::showIntrinsics(const QStringList& ins)
+{
+    for (const QString& in : ins)
+        showIntrinsic(m_intrinsics_map[in]);
+
+    for (QDockWidget* dw : m_dock_widgets)
+        restoreDockWidget(dw);
 }

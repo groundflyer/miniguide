@@ -44,6 +44,7 @@ IntrinsicDetails::IntrinsicDetails(const Intrinsic& i, QWidget* parent) : QScrol
     p_signature->setFont(monospace);
     p_signature->setTextFormat(Qt::RichText);
     p_signature->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    p_signature->setWordWrap(true);
 
     p_header->setFont(monospace);
     p_header->setTextFormat(Qt::PlainText);

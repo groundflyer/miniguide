@@ -13,10 +13,23 @@
 
 
 static const QString app_name("Intrinsics Guide");
-static const QString st_data("data");
-static const QString st_winsize("window/winsize");
-static const QString st_split1("window/split1");
-static const QString st_split2("window/split2");
+
+// settings names
+namespace st
+{
+static const QString data("data");
+
+static const QString winsize("Window/winsize");
+static const QString split1("Window/split1");
+static const QString split2("Window/split2");
+static const QString winstate("Window/state");
+
+static const QString search("Selection/search");
+static const QString techs("Selection/technologies");
+static const QString cats("Selection/categories");
+static const QString cpuids("Selection/cpuids");
+static const QString intrs("Selection/intrinsics");
+} // namespace st
 
 int main(int argc, char* argv[])
 {
@@ -26,7 +39,7 @@ int main(int argc, char* argv[])
 
     QString data_path = QApplication::applicationDirPath() + "/data-3.5.2.xml";
     QSettings settings;
-    QVariant data_path_v = settings.value(st_data);
+    QVariant data_path_v = settings.value(st::data);
     if (data_path_v.canConvert<QString>())
         data_path = data_path_v.toString();
 
@@ -34,11 +47,17 @@ int main(int argc, char* argv[])
 
     auto settings_saver = [&settings, &window]()
     {
-        settings.setValue(st_winsize, window.size());
-
         const auto [split1, split2] = window.saveSplittersState();
-        settings.setValue(st_split1, split1);
-        settings.setValue(st_split2, split2);
+
+        settings.setValue(st::winsize, window.size());
+        settings.setValue(st::split1, split1);
+        settings.setValue(st::split2, split2);
+        settings.setValue(st::winstate, window.saveState());
+        settings.setValue(st::search, window.searchText());
+        settings.setValue(st::techs, QStringList(window.selectedTechs().values()));
+        settings.setValue(st::cats, QStringList(window.selectedCategories().values()));
+        settings.setValue(st::cpuids, QStringList(window.selectedCPUIDs().values()));
+        settings.setValue(st::intrs, window.shownIntrinsics());
     };
 
     QObject::connect(&app, &QApplication::aboutToQuit, settings_saver);
@@ -50,7 +69,7 @@ int main(int argc, char* argv[])
                                                  QDir::homePath(),
                                                  "XML documents (data-*.xml)");
         data_file.setFileName(data_path);
-        settings.setValue(st_data, data_path);
+        settings.setValue(st::data, data_path);
     }
 
     try
@@ -81,11 +100,23 @@ int main(int argc, char* argv[])
 
     // loading settings
     {
-        window.resize(settings.value(st_winsize, QSize(640, 480)).toSize());
-        const QVariant s1 = settings.value(st_split1);
-        const QVariant s2 = settings.value(st_split2);
+        window.resize(settings.value(st::winsize, QSize(640, 480)).toSize());
+
+        const QVariant s1 = settings.value(st::split1);
+        const QVariant s2 = settings.value(st::split2);
         if (s1.isValid() && s2.isValid())
             window.restoreSplittersState(s1.toByteArray(), s2.toByteArray());
+
+        const QVariant ws = settings.value(st::winstate);
+        if (ws.isValid())
+            window.restoreState(ws.toByteArray());
+
+        // selections
+        window.setSearch(settings.value(st::search, "").toString());
+        window.selectTechs(settings.value(st::techs, QStringList()).toStringList());
+        window.selectCategories(settings.value(st::cats, QStringList()).toStringList());
+        window.selectCPUIDs(settings.value(st::cpuids, QStringList()).toStringList());
+        window.showIntrinsics(settings.value(st::intrs, QStringList()).toStringList());
     }
 
     window.setWindowTitle(app_name);
