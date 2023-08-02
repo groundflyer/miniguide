@@ -61,6 +61,13 @@ IntrinsicDetails::IntrinsicDetails(const Intrinsic& i, QWidget* parent) : QScrol
     instructions_layout->addWidget(p_instructions_label);
     instructions_layout->addWidget(p_instructions);
 
+    static const QString qs_cpuids("CPUID Flags:");
+    QLabel* cpuid_label = new QLabel(qs_cpuids);
+    QHBoxLayout* cpuid_layout = new QHBoxLayout;
+    cpuid_layout->setAlignment(Qt::AlignLeft);
+    cpuid_layout->addWidget(cpuid_label);
+    cpuid_layout->addWidget(p_cpuids);
+
     static const QString qs_description("Description");
     QLabel* description_label = new QLabel(qs_description);
     description_label->setFont(bold);
@@ -82,6 +89,7 @@ IntrinsicDetails::IntrinsicDetails(const Intrinsic& i, QWidget* parent) : QScrol
     layout->addWidget(p_signature);
     layout->addWidget(p_header);
     layout->addLayout(instructions_layout);
+    layout->addLayout(cpuid_layout);
     layout->addWidget(description_label);
     layout->addWidget(p_description);
     layout->addWidget(p_operation_label);
@@ -109,6 +117,8 @@ IntrinsicDetails::setIntrinsic(const Intrinsic& i)
     p_instructions->setHidden(i.instructions.empty());
     if (!i.instructions.empty())
         p_instructions->setText(format_instructions(i.instructions));
+
+    p_cpuids->setText(QStringList(i.cpuids.values()).join(" + "));
 
     p_description->setText(i.description);
 
