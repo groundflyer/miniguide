@@ -49,7 +49,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 
     setCentralWidget(central);
 
-    setDockOptions(AnimatedDocks | AllowTabbedDocks | ForceTabbedDocks);
+    setDockOptions(AnimatedDocks | AllowTabbedDocks);
+    setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
 }
 
 QString format_parms(const QVector<Var>& parms) noexcept
@@ -323,6 +324,7 @@ MainWindow::showIntrinsic(const Intrinsic& i)
         QDockWidget *dw = new QDockWidget(i.name);
         dw->setObjectName(i.name);
         dw->setWidget(id);
+        dw->setAllowedAreas(Qt::RightDockWidgetArea);
         addDockWidget(Qt::RightDockWidgetArea, dw);
         if (!m_dock_widgets.empty())
             tabifyDockWidget(m_dock_widgets.values().back(), dw);
