@@ -5,6 +5,8 @@
 #include <QBrush>
 #include <QLabel>
 #include <QWidget>
+#include <QTabBar>
+#include <QList>
 
 #include <functional>
 
@@ -46,6 +48,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
     central->setLayout(top_layout);
 
     setCentralWidget(central);
+
+    setDockOptions(AnimatedDocks | AllowTabbedDocks | ForceTabbedDocks);
 }
 
 QString format_parms(const QVector<Var>& parms) noexcept
@@ -248,13 +252,13 @@ MainWindow::fillTechTree(const QSet<QString>& cpuids)
         for(auto it = techs.crbegin(); it != techs.crend(); ++it)
         {
             QString tt = *it;
-            // AVX-512 cpuids are actually AVX512_BLABLABLA
+            // AVX-512 cpuids are AVX512_BLABLABLA
             // so we remove '-' when comparing
             tt.remove('-');
 
             if (cpuid != tt && cpuid.startsWith(tt))
             {
-                // but the key is actuall tech name
+                // but the key is actual tech name
                 subtech[*it].append(cpuid);
                 other = false;
                 break;
@@ -310,15 +314,28 @@ MainWindow::showIntrinsic(const Intrinsic& i)
 {
     if (m_dock_widgets.contains(i.name))
     {
+        m_dock_widgets[i.name]->show();
         m_dock_widgets[i.name]->setFocus(Qt::OtherFocusReason);
-    } else {
+    }
+    else
+    {
         IntrinsicDetails *id = new IntrinsicDetails(i);
         QDockWidget *dw = new QDockWidget(i.name);
         dw->setObjectName(i.name);
         dw->setWidget(id);
         addDockWidget(Qt::RightDockWidgetArea, dw);
+        if (!m_dock_widgets.empty())
+            tabifyDockWidget(m_dock_widgets.values().back(), dw);
         m_dock_widgets.insert(i.name, dw);
     }
+
+    for (QTabBar* tab : findChildren<QTabBar*>("", Qt::FindDirectChildrenOnly))
+        for (int ti = 0; ti < tab->count(); ++ti)
+            if (tab->tabText(ti) == i.name)
+            {
+                tab->setCurrentIndex(ti);
+                return;
+            }
 }
 
 QStringList
