@@ -6,13 +6,15 @@
 #include <QVector>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QRegularExpression>
 
-static const inline QString type_html = "<font color=darkBlue>%1</font>";
-static const inline QString parm_html = "<font color=darkCyan>%1</font>";
 
 QString html_parms(const QVector<Var>& parms) noexcept
 {
     QStringList varlist;
+
+    static const QString type_html = "<font color=darkBlue>%1</font>";
+    static const QString parm_html = "<font color=darkCyan>%1</font>";
 
     for (const Var& var: parms)
         varlist.append(type_html.arg(var.type) + ' ' + parm_html.arg(var.name));
@@ -73,7 +75,7 @@ IntrinsicDetails::IntrinsicDetails(const Intrinsic& i, QWidget* parent) : QScrol
     description_label->setFont(bold);
     description_label->setTextFormat(Qt::PlainText);
 
-    p_description->setTextFormat(Qt::PlainText);
+    p_description->setTextFormat(Qt::RichText);
     p_description->setWordWrap(true);
     p_description->setScaledContents(true);
 
@@ -120,7 +122,9 @@ IntrinsicDetails::setIntrinsic(const Intrinsic& i)
 
     p_cpuids->setText(QStringList(i.cpuids.values()).join(" + "));
 
-    p_description->setText(i.description);
+    static const QRegularExpression re_var("\"(\\w+)\"");
+    QString descr = i.description;
+    p_description->setText(descr.replace(re_var, "<font color=darkCyan>\\1</font>"));
 
     p_operation_label->setHidden(i.operation.isEmpty());
     p_operation->setHidden(i.operation.isEmpty());
