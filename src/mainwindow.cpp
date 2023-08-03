@@ -104,6 +104,7 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
         filter();
     };
 
+    QObject::connect(p_tech_tree, &QTreeWidget::itemChanged, this, &MainWindow::selectParent);
     QObject::connect(p_tech_tree, &QTreeWidget::itemChanged, slot);
     QObject::connect(p_cat_list, &QListWidget::itemChanged, slot);
     QObject::connect(p_search_edit, &QLineEdit::textChanged, slot);
@@ -381,4 +382,42 @@ MainWindow::techBrush(const QString& tech, const int alpha) const
     grad.setColorAt(1., clr);
 
     return {grad};
+}
+
+bool
+hasSelectedChildren(QTreeWidgetItem* item)
+{
+    for (int i = 0; i < item->childCount(); ++i)
+        if (item->child(i)->checkState(0) == Qt::Checked)
+            return true;
+
+    return false;
+}
+
+void
+deselectChildren(QTreeWidgetItem* item)
+{
+    if (item->checkState(0) == Qt::Unchecked)
+        for (int i = 0; i < item->childCount(); ++i)
+            if (item->child(i)->checkState(0) == Qt::Checked)
+                item->child(i)->setCheckState(0, Qt::Unchecked);
+}
+
+void
+smartSwitch(QTreeWidgetItem* item, int column)
+{
+    if (item->checkState(column) != Qt::Checked)
+        item->setCheckState(column, hasSelectedChildren(item)
+                              ? Qt::PartiallyChecked
+                              : Qt::Unchecked);
+}
+
+void
+MainWindow::selectParent(QTreeWidgetItem* child, int column)
+{
+    QTreeWidgetItem* parent = child->parent();
+    if (parent)
+        smartSwitch(parent, column);
+    else
+        deselectChildren(child);
 }
