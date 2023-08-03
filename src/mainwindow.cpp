@@ -7,6 +7,7 @@
 #include <QWidget>
 #include <QTabBar>
 #include <QList>
+#include <QLinearGradient>
 
 #include <functional>
 
@@ -51,6 +52,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 
     setDockOptions(AnimatedDocks | AllowTabbedDocks);
     setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
+
+    // filling colormap
+    const int num_clrs = technologies.indexOf("AVX-512");
+    int h = 59;
+    const int d = (359 - h) / num_clrs;
+    for (int i = 0; i <= num_clrs; ++i, h += d)
+        m_colormap.insert(technologies[i], QColor::fromHsv(h, 255, 255));
 }
 
 QString format_parms(const QVector<Var>& parms) noexcept
@@ -83,6 +91,7 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
         const QString tooltip = QString("%1 %2(%3)").arg(i.ret_type, i.name, format_parms(i.parms));
         QListWidgetItem* item = new QListWidgetItem(i.name);
         item->setToolTip(tooltip);
+        item->setBackground(techBrush(i.techs.values().front()));
         m_intrinsics_widgets.append(item);
         p_name_list->addItem(item);
         m_intrinsics_map.insert(i.name, i);
@@ -238,20 +247,21 @@ MainWindow::fillCategoriesList(const QSet<QString>& categories)
 void
 MainWindow::fillTechTree(const QSet<QString>& cpuids)
 {
+    // prepare data
     QHash<QString, QStringList> subtech;
 
-    for (const QString& tt : techs)
+    for (const QString& tt : technologies)
         subtech.insert(tt, QStringList());
 
     for (const QString& cpuid : cpuids)
     {
-        if (techs.contains(cpuid))
+        if (technologies.contains(cpuid))
             continue;
 
         bool other = true;
 
         // adding in reverse order
-        for(auto it = techs.crbegin(); it != techs.crend(); ++it)
+        for(auto it = technologies.crbegin(); it != technologies.crend(); ++it)
         {
             if (cpuid != *it && cpuid.startsWith(*it))
             {
@@ -265,12 +275,14 @@ MainWindow::fillTechTree(const QSet<QString>& cpuids)
             subtech["Other"].append(cpuid);
     }
 
-    for (const QString &tt : techs)
+    // fill the tree widget
+    for (const QString &tt : technologies)
     {
         QTreeWidgetItem *item = new QTreeWidgetItem(p_tech_tree);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(0, Qt::Unchecked);
         item->setText(0, tt);
+        item->setBackground(0, techBrush(tt));
 
         m_tech_widgets.append(item);
 
@@ -285,6 +297,7 @@ MainWindow::fillTechTree(const QSet<QString>& cpuids)
                 child->setFlags(child->flags() | Qt::ItemIsUserCheckable);
                 child->setCheckState(0, Qt::Unchecked);
                 child->setText(0, sub);
+                child->setBackground(0, techBrush(tt, 127));
 
                 m_cpuid_widgets.append(child);
             }
@@ -355,4 +368,17 @@ MainWindow::showIntrinsics(const QStringList& ins)
 
     for (QDockWidget* dw : m_dock_widgets)
         restoreDockWidget(dw);
+}
+
+QBrush
+MainWindow::techBrush(const QString& tech, const int alpha) const
+{
+    QColor clr = m_colormap[tech];
+    clr.setAlpha(alpha);
+    QLinearGradient grad(0., 1., 1., 1.);
+    grad.setCoordinateMode(QGradient::ObjectMode);
+    grad.setColorAt(0., Qt::white);
+    grad.setColorAt(1., clr);
+
+    return {grad};
 }

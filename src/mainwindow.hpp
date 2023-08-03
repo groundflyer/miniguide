@@ -18,6 +18,7 @@
 #include <QStringList>
 #include <QSplitter>
 #include <QDockWidget>
+#include <QColor>
 
 #include <utility>
 
@@ -25,7 +26,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    static const inline QStringList techs =
+    static const inline QStringList technologies =
         {
             "MMX",
             "SSE",
@@ -55,6 +56,13 @@ class MainWindow : public QMainWindow
     QVector<QTreeWidgetItem*> m_cpuid_widgets;
     QHash<QString, Intrinsic> m_intrinsics_map;
     QHash<QString, QDockWidget*> m_dock_widgets;
+    QHash<QString, QColor> m_colormap{
+        {"KNC", {255, 142, 0}},
+        {"SVML", {0, 175, 239}},
+        {"Other", Qt::gray}};
+
+    QBrush
+    techBrush(const QString& tech, const int alpha = 255) const;
 
     void
     fillTechTree(const QSet<QString>& cpuids);
