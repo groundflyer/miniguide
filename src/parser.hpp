@@ -26,7 +26,7 @@ struct Instruction
 struct Intrinsic
 {
     QString name;
-    QString tech;
+    QSet<QString> techs;
     QString category;
     QSet<QString> cpuids;
     QString ret_type;

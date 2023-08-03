@@ -75,7 +75,7 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
 
     for (const Intrinsic& i : intrinsics)
     {
-        techs.insert(i.tech);
+        techs.unite(i.techs);
         categories.insert(i.category);
 
         cpuids.unite(i.cpuids);
@@ -207,7 +207,7 @@ MainWindow::filter()
 
         const bool name_match = search_name.isEmpty() || iname.contains(search_name, Qt::CaseInsensitive);
         const bool cat_match = cats.empty() || cats.contains(i.category);
-        const bool tech_match = (techs.empty() && cpuids.empty()) || techs.contains(i.tech) || cpuids.intersects(i.cpuids);
+        const bool tech_match = (techs.empty() && cpuids.empty()) || techs.intersects(i.techs) || cpuids.intersects(i.cpuids);
 
         const bool match = name_match &&
             tech_match &&
@@ -250,16 +250,11 @@ MainWindow::fillTechTree(const QSet<QString>& cpuids)
 
         bool other = true;
 
+        // adding in reverse order
         for(auto it = techs.crbegin(); it != techs.crend(); ++it)
         {
-            QString tt = *it;
-            // AVX-512 cpuids are AVX512_BLABLABLA
-            // so we remove '-' when comparing
-            tt.remove('-');
-
-            if (cpuid != tt && cpuid.startsWith(tt))
+            if (cpuid != *it && cpuid.startsWith(*it))
             {
-                // but the key is actual tech name
                 subtech[*it].append(cpuid);
                 other = false;
                 break;

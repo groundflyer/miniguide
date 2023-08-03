@@ -5,6 +5,7 @@
 
 #include <QDomDocument>
 
+
 Var parse_var(const QDomNode& node)
 {
     const QDomNamedNodeMap attrs = node.attributes();
@@ -26,7 +27,9 @@ Intrinsic parse_intrinsic(const QDomNode& node)
 
     const QDomNamedNodeMap attrs = node.attributes();
     ret.name = attrs.namedItem("name").nodeValue();
-    ret.tech = attrs.namedItem("tech").nodeValue();
+
+    for (const QString &t : attrs.namedItem("tech").nodeValue().split('/', Qt::SkipEmptyParts))
+        ret.techs.insert(t);
 
     const QDomNodeList fields = node.childNodes();
     for (int i = 0; i < fields.count(); ++i)
@@ -38,9 +41,12 @@ Intrinsic parse_intrinsic(const QDomNode& node)
         if (name == "category")
             ret.category = text;
         else if (name == "CPUID")
-            ret.cpuids.insert(text);
+        {
+            for (QString c : text.split('/'))
+                ret.cpuids.insert(c.replace("AVX512", "AVX-512"));
+        }
         else if (name == "return")
-            ret.ret_type = field.attributes().namedItem("type").nodeValue();
+          ret.ret_type = field.attributes().namedItem("type").nodeValue();
         else if (name == "parameter")
             ret.parms.append(parse_var(field));
         else if (name == "description")
