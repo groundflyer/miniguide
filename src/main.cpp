@@ -24,11 +24,11 @@ static const QString split1("Window/split1");
 static const QString split2("Window/split2");
 static const QString winstate("Window/state");
 
-static const QString search("Selection/search");
-static const QString techs("Selection/technologies");
-static const QString cats("Selection/categories");
-static const QString cpuids("Selection/cpuids");
-static const QString intrs("Selection/intrinsics");
+static const QString search("Session/search");
+static const QString techs("Session/technologies");
+static const QString cats("Session/categories");
+static const QString cpuids("Session/cpuids");
+static const QString intrs("Session/intrinsics");
 } // namespace st
 
 int main(int argc, char* argv[])
