@@ -71,6 +71,20 @@ QString format_parms(const QVector<Var>& parms) noexcept
     return varlist.join(' ');
 }
 
+QString
+intrinsicID(const Intrinsic& i)
+{
+    if(i.instructions.empty())
+        return i.name;
+
+    static const QString id_template("%1 (%2)");
+    QString instruction = i.instructions.front().name.toLower();
+
+    if (i.instructions.count() > 1)
+        instruction += ",..";
+
+    return id_template.arg(i.name, instruction);
+};
 
 void
 MainWindow::addIntrinsics(const Intrinsics& intrinsics)
@@ -89,12 +103,13 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
         cpuids.unite(i.cpuids);
 
         const QString tooltip = QString("%1 %2(%3)").arg(i.ret_type, i.name, format_parms(i.parms));
-        QListWidgetItem* item = new QListWidgetItem(i.name);
+        const QString id = intrinsicID(i);
+        QListWidgetItem* item = new QListWidgetItem(id);
         item->setToolTip(tooltip);
         item->setBackground(techBrush(i.techs.values().front()));
         m_intrinsics_widgets.append(item);
         p_name_list->addItem(item);
-        m_intrinsics_map.insert(i.name, i);
+        m_intrinsics_map.insert(id, i);
     }
 
     fillTechTree(cpuids);
@@ -322,27 +337,27 @@ MainWindow::restoreSplittersState(const QByteArray& s1, const QByteArray& s2)
 void
 MainWindow::showIntrinsic(const Intrinsic& i)
 {
-    if (m_dock_widgets.contains(i.name))
+    const QString iid = intrinsicID(i);
+    if (m_dock_widgets.contains(iid))
     {
-        m_dock_widgets[i.name]->show();
-        m_dock_widgets[i.name]->setFocus(Qt::OtherFocusReason);
+        m_dock_widgets[iid]->show();
+        m_dock_widgets[iid]->setFocus(Qt::OtherFocusReason);
     }
     else
     {
-        IntrinsicDetails *id = new IntrinsicDetails(i);
-        QDockWidget *dw = new QDockWidget(i.name);
-        dw->setObjectName(i.name);
-        dw->setWidget(id);
+        QDockWidget *dw = new QDockWidget(iid);
+        dw->setObjectName(iid);
+        dw->setWidget(new IntrinsicDetails(i));
         dw->setAllowedAreas(Qt::RightDockWidgetArea);
         addDockWidget(Qt::RightDockWidgetArea, dw);
         if (!m_dock_widgets.empty())
             tabifyDockWidget(m_dock_widgets.values().back(), dw);
-        m_dock_widgets.insert(i.name, dw);
+        m_dock_widgets.insert(iid, dw);
     }
 
     for (QTabBar* tab : findChildren<QTabBar*>("", Qt::FindDirectChildrenOnly))
         for (int ti = 0; ti < tab->count(); ++ti)
-            if (tab->tabText(ti) == i.name)
+            if (tab->tabText(ti) == iid)
             {
                 tab->setCurrentIndex(ti);
                 return;
