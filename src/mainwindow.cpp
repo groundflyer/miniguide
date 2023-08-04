@@ -14,6 +14,7 @@
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 {
     p_search_edit->setPlaceholderText("_mm_search");
+    p_search_edit->setClearButtonEnabled(true);
 
     p_tech_tree->setHeaderHidden(true);
 
