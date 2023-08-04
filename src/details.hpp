@@ -6,9 +6,9 @@
 
 #include "parser.hpp"
 
-#include <QScrollArea>
-#include <QLabel>
 #include <QFont>
+#include <QLabel>
+#include <QScrollArea>
 
 class IntrinsicDetails : public QScrollArea
 {
@@ -17,17 +17,18 @@ class IntrinsicDetails : public QScrollArea
     QFont monospace = QFont("Monospace");
     QFont bold;
 
-    QLabel* p_signature = new QLabel;
-    QLabel* p_header = new QLabel;
+    QLabel* p_signature          = new QLabel;
+    QLabel* p_header             = new QLabel;
     QLabel* p_instructions_label = new QLabel("Instruction:");
-    QLabel* p_instructions = new QLabel;
-    QLabel* p_cpuids = new QLabel;
-    QLabel* p_description = new QLabel;
-    QLabel* p_operation_label = new QLabel("Operation:");
-    QLabel* p_operation = new QLabel;
+    QLabel* p_instructions       = new QLabel;
+    QLabel* p_cpuids             = new QLabel;
+    QLabel* p_description        = new QLabel;
+    QLabel* p_operation_label    = new QLabel("Operation");
+    QLabel* p_operation          = new QLabel;
 
-    void setIntrinsic(const Intrinsic&);
+    void
+    setIntrinsic(const Intrinsic&);
 
-public:
+  public:
     IntrinsicDetails(const Intrinsic& i, QWidget* parent = nullptr);
 };

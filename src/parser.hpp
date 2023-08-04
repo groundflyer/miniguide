@@ -4,11 +4,10 @@
 
 #pragma once
 
-#include <QVector>
 #include <QFile>
-#include <QString>
 #include <QSet>
-
+#include <QString>
+#include <QVector>
 
 struct Var
 {
@@ -25,21 +24,22 @@ struct Instruction
 
 struct Intrinsic
 {
-    QString name;
-    QSet<QString> techs;
-    QString category;
-    QSet<QString> cpuids;
-    QString ret_type;
-    QVector<Var> parms;
-    QString description;
-    QString operation;
+    QString              name;
+    QSet<QString>        techs;
+    QString              category;
+    QSet<QString>        cpuids;
+    QString              ret_type;
+    QVector<Var>         parms;
+    QString              description;
+    QString              operation;
     QVector<Instruction> instructions;
-    QString header;
+    QString              header;
 };
 
 struct ParsingError
 {
-    enum {
+    enum
+    {
         NOT_OPEN,
         NOT_IIDATA
     } reason = NOT_OPEN;
@@ -49,9 +49,10 @@ using Intrinsics = QVector<Intrinsic>;
 
 struct ParseData
 {
-    QString version;
-    QString date;
+    QString    version;
+    QString    date;
     Intrinsics intrinsics;
 };
 
-ParseData parse_doc(QFile* data_file);
+ParseData
+parse_doc(QFile* data_file);

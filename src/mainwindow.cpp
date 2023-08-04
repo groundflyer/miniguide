@@ -1,13 +1,13 @@
 #include "mainwindow.hpp"
 #include "details.hpp"
 
-#include <QVBoxLayout>
 #include <QBrush>
 #include <QLabel>
-#include <QWidget>
-#include <QTabBar>
-#include <QList>
 #include <QLinearGradient>
+#include <QList>
+#include <QTabBar>
+#include <QVBoxLayout>
+#include <QWidget>
 
 #include <functional>
 
@@ -56,18 +56,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 
     // filling colormap
     const int num_clrs = technologies.indexOf("AVX-512");
-    int h = 59;
-    const int d = (359 - h) / num_clrs;
-    for (int i = 0; i <= num_clrs; ++i, h += d)
+    int       h        = 59;
+    const int d        = (359 - h) / num_clrs;
+    for(int i = 0; i <= num_clrs; ++i, h += d)
         m_colormap.insert(technologies[i], QColor::fromHsv(h, 255, 255));
 }
 
-QString format_parms(const QVector<Var>& parms) noexcept
+QString
+format_parms(const QVector<Var>& parms) noexcept
 {
     QStringList varlist;
 
-    for (const Var& var: parms)
-        varlist.append(var.type + ' ' + var.name);
+    for(const Var& var: parms) varlist.append(var.type + ' ' + var.name);
 
     return varlist.join(' ');
 }
@@ -75,14 +75,12 @@ QString format_parms(const QVector<Var>& parms) noexcept
 QString
 intrinsicID(const Intrinsic& i)
 {
-    if(i.instructions.empty())
-        return i.name;
+    if(i.instructions.empty()) return i.name;
 
     static const QString id_template("%1 (%2)");
-    QString instruction = i.instructions.front().name.toLower();
+    QString              instruction = i.instructions.front().name.toLower();
 
-    if (i.instructions.count() > 1)
-        instruction += ",..";
+    if(i.instructions.count() > 1) instruction += ",..";
 
     return id_template.arg(i.name, instruction);
 };
@@ -96,15 +94,16 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
     m_intrinsics_widgets.reserve(intrinsics.count());
     m_intrinsics_map.reserve(intrinsics.count());
 
-    for (const Intrinsic& i : intrinsics)
+    for(const Intrinsic& i: intrinsics)
     {
         techs.unite(i.techs);
         categories.insert(i.category);
 
         cpuids.unite(i.cpuids);
 
-        const QString tooltip = QString("%1 %2(%3)").arg(i.ret_type, i.name, format_parms(i.parms));
-        const QString id = intrinsicID(i);
+        const QString tooltip =
+            QString("%1 %2(%3)").arg(i.ret_type, i.name, format_parms(i.parms));
+        const QString    id   = intrinsicID(i);
         QListWidgetItem* item = new QListWidgetItem(id);
         item->setToolTip(tooltip);
         item->setBackground(techBrush(i.techs.values().front()));
@@ -116,17 +115,19 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
     fillTechTree(cpuids);
     fillCategoriesList(categories);
 
-    auto slot = [&](auto...){
-        filter();
-    };
+    auto slot = [&](auto...) { filter(); };
 
-    QObject::connect(p_tech_tree, &QTreeWidget::itemChanged, this, &MainWindow::selectParent);
+    QObject::connect(p_tech_tree,
+                     &QTreeWidget::itemChanged,
+                     this,
+                     &MainWindow::selectParent);
     QObject::connect(p_tech_tree, &QTreeWidget::itemChanged, slot);
     QObject::connect(p_cat_list, &QListWidget::itemChanged, slot);
     QObject::connect(p_search_edit, &QLineEdit::textChanged, slot);
-    QObject::connect(p_name_list, &QListWidget::itemClicked, [&](QListWidgetItem* item) {
-        showIntrinsic(m_intrinsics_map[item->text()]);
-    });
+    QObject::connect(p_name_list,
+                     &QListWidget::itemClicked,
+                     [&](QListWidgetItem* item)
+                     { showIntrinsic(m_intrinsics_map[item->text()]); });
 }
 
 QString
@@ -143,25 +144,28 @@ MainWindow::setSearch(const QString& s)
 
 template <typename Widgets, typename ItemCheck, typename ItemText>
 QSet<QString>
-selected_widgets(const Widgets& widgets, ItemCheck&& item_check, ItemText&& item_text) noexcept
+selected_widgets(const Widgets& widgets,
+                 ItemCheck&&    item_check,
+                 ItemText&&     item_text) noexcept
 {
     QSet<QString> ret;
 
-    for (const auto& item : widgets)
-        if (item_check(item) == Qt::Checked)
-            ret.insert(item_text(item));
+    for(const auto& item: widgets)
+        if(item_check(item) == Qt::Checked) ret.insert(item_text(item));
 
     return ret;
 }
 
 template <typename Widgets, typename ItemText, typename ItemCheck>
 void
-select_widgets(const QStringList& ss, Widgets& widgets, ItemText&& item_text, ItemCheck&& item_check) noexcept
+select_widgets(const QStringList& ss,
+               Widgets&           widgets,
+               ItemText&&         item_text,
+               ItemCheck&&        item_check) noexcept
 {
-    for (const QString& s : ss)
-        for (auto& item : widgets)
-            if (item_text(item) == s)
-                item_check(item, Qt::Checked);
+    for(const QString& s: ss)
+        for(auto& item: widgets)
+            if(item_text(item) == s) item_check(item, Qt::Checked);
 }
 
 auto
@@ -209,35 +213,42 @@ MainWindow::selectCPUIDs(const QStringList& ss)
 QSet<QString>
 MainWindow::selectedCategories() const
 {
-    return selected_widgets(m_category_widgets, std::mem_fn(&QListWidgetItem::checkState), std::mem_fn(&QListWidgetItem::text));
+    return selected_widgets(m_category_widgets,
+                            std::mem_fn(&QListWidgetItem::checkState),
+                            std::mem_fn(&QListWidgetItem::text));
 }
 
 void
 MainWindow::selectCategories(const QStringList& ss)
 {
-    select_widgets(ss, m_category_widgets, std::mem_fn(&QListWidgetItem::text), std::mem_fn(&QListWidgetItem::setCheckState));
+    select_widgets(ss,
+                   m_category_widgets,
+                   std::mem_fn(&QListWidgetItem::text),
+                   std::mem_fn(&QListWidgetItem::setCheckState));
 }
 
 void
 MainWindow::filter()
 {
-    const QString search_name = searchText();
-    const QSet<QString> techs = selectedTechs();
-    const QSet<QString> cpuids = selectedCPUIDs();
-    const QSet<QString> cats = selectedCategories();
+    const QString       search_name = searchText();
+    const QSet<QString> techs       = selectedTechs();
+    const QSet<QString> cpuids      = selectedCPUIDs();
+    const QSet<QString> cats        = selectedCategories();
 
-    for (QListWidgetItem* item : m_intrinsics_widgets)
+    for(QListWidgetItem* item: m_intrinsics_widgets)
     {
-        const QString iname = item->text();
-        const Intrinsic& i = m_intrinsics_map[iname];
+        const QString    iname = item->text();
+        const Intrinsic& i     = m_intrinsics_map[iname];
 
-        const bool name_match = search_name.isEmpty() || iname.contains(search_name, Qt::CaseInsensitive);
-        const bool cat_match = cats.empty() || cats.contains(i.category);
-        const bool tech_match = (techs.empty() && cpuids.empty()) || techs.intersects(i.techs) || cpuids.intersects(i.cpuids);
+        const bool name_match =
+            search_name.isEmpty() ||
+            iname.contains(search_name, Qt::CaseInsensitive);
+        const bool cat_match  = cats.empty() || cats.contains(i.category);
+        const bool tech_match = (techs.empty() && cpuids.empty()) ||
+                                techs.intersects(i.techs) ||
+                                cpuids.intersects(i.cpuids);
 
-        const bool match = name_match &&
-            tech_match &&
-            cat_match;
+        const bool match = name_match && tech_match && cat_match;
 
         item->setHidden(!match);
     }
@@ -251,7 +262,7 @@ MainWindow::fillCategoriesList(const QSet<QString>& categories)
     cats.sort();
     m_category_widgets.reserve(cats.count());
 
-    for (const QString &c : cats)
+    for(const QString& c: cats)
     {
         QListWidgetItem* item = new QListWidgetItem(c);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
@@ -267,20 +278,18 @@ MainWindow::fillTechTree(const QSet<QString>& cpuids)
     // prepare data
     QHash<QString, QStringList> subtech;
 
-    for (const QString& tt : technologies)
-        subtech.insert(tt, QStringList());
+    for(const QString& tt: technologies) subtech.insert(tt, QStringList());
 
-    for (const QString& cpuid : cpuids)
+    for(const QString& cpuid: cpuids)
     {
-        if (technologies.contains(cpuid))
-            continue;
+        if(technologies.contains(cpuid)) continue;
 
         bool other = true;
 
         // adding in reverse order
         for(auto it = technologies.crbegin(); it != technologies.crend(); ++it)
         {
-            if (cpuid != *it && cpuid.startsWith(*it))
+            if(cpuid != *it && cpuid.startsWith(*it))
             {
                 subtech[*it].append(cpuid);
                 other = false;
@@ -288,14 +297,13 @@ MainWindow::fillTechTree(const QSet<QString>& cpuids)
             }
         }
 
-        if (other)
-            subtech["Other"].append(cpuid);
+        if(other) subtech["Other"].append(cpuid);
     }
 
     // fill the tree widget
-    for (const QString &tt : technologies)
+    for(const QString& tt: technologies)
     {
-        QTreeWidgetItem *item = new QTreeWidgetItem(p_tech_tree);
+        QTreeWidgetItem* item = new QTreeWidgetItem(p_tech_tree);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(0, Qt::Unchecked);
         item->setText(0, tt);
@@ -305,12 +313,12 @@ MainWindow::fillTechTree(const QSet<QString>& cpuids)
 
         QStringList& subs = subtech[tt];
 
-        if (!subs.empty())
+        if(!subs.empty())
         {
             subs.sort();
-            for (const QString& sub : subs)
+            for(const QString& sub: subs)
             {
-                QTreeWidgetItem *child = new QTreeWidgetItem(item);
+                QTreeWidgetItem* child = new QTreeWidgetItem(item);
                 child->setFlags(child->flags() | Qt::ItemIsUserCheckable);
                 child->setCheckState(0, Qt::Unchecked);
                 child->setText(0, sub);
@@ -325,7 +333,7 @@ MainWindow::fillTechTree(const QSet<QString>& cpuids)
 std::pair<QByteArray, QByteArray>
 MainWindow::saveSplittersState() const
 {
-    return { p_left_split->saveState(), p_top_split->saveState() };
+    return {p_left_split->saveState(), p_top_split->saveState()};
 }
 
 void
@@ -339,26 +347,26 @@ void
 MainWindow::showIntrinsic(const Intrinsic& i)
 {
     const QString iid = intrinsicID(i);
-    if (m_dock_widgets.contains(iid))
+    if(m_dock_widgets.contains(iid))
     {
         m_dock_widgets[iid]->show();
         m_dock_widgets[iid]->setFocus(Qt::OtherFocusReason);
     }
     else
     {
-        QDockWidget *dw = new QDockWidget(iid);
+        QDockWidget* dw = new QDockWidget(iid);
         dw->setObjectName(iid);
         dw->setWidget(new IntrinsicDetails(i));
         dw->setAllowedAreas(Qt::RightDockWidgetArea);
         addDockWidget(Qt::RightDockWidgetArea, dw);
-        if (!m_dock_widgets.empty())
+        if(!m_dock_widgets.empty())
             tabifyDockWidget(m_dock_widgets.values().back(), dw);
         m_dock_widgets.insert(iid, dw);
     }
 
-    for (QTabBar* tab : findChildren<QTabBar*>("", Qt::FindDirectChildrenOnly))
-        for (int ti = 0; ti < tab->count(); ++ti)
-            if (tab->tabText(ti) == iid)
+    for(QTabBar* tab: findChildren<QTabBar*>("", Qt::FindDirectChildrenOnly))
+        for(int ti = 0; ti < tab->count(); ++ti)
+            if(tab->tabText(ti) == iid)
             {
                 tab->setCurrentIndex(ti);
                 return;
@@ -370,8 +378,8 @@ MainWindow::shownIntrinsics() const
 {
     QStringList ret;
 
-    for (auto it = m_dock_widgets.cbegin(); it != m_dock_widgets.cend(); ++it)
-        if (!it.value()->isHidden() || it.value()->isFloating())
+    for(auto it = m_dock_widgets.cbegin(); it != m_dock_widgets.cend(); ++it)
+        if(!it.value()->isHidden() || it.value()->isFloating())
             ret.append(it.key());
 
     return ret;
@@ -380,11 +388,9 @@ MainWindow::shownIntrinsics() const
 void
 MainWindow::showIntrinsics(const QStringList& ins)
 {
-    for (const QString& in : ins)
-        showIntrinsic(m_intrinsics_map[in]);
+    for(const QString& in: ins) showIntrinsic(m_intrinsics_map[in]);
 
-    for (QDockWidget* dw : m_dock_widgets)
-        restoreDockWidget(dw);
+    for(QDockWidget* dw: m_dock_widgets) restoreDockWidget(dw);
 }
 
 QBrush
@@ -403,9 +409,8 @@ MainWindow::techBrush(const QString& tech, const int alpha) const
 bool
 hasSelectedChildren(QTreeWidgetItem* item)
 {
-    for (int i = 0; i < item->childCount(); ++i)
-        if (item->child(i)->checkState(0) == Qt::Checked)
-            return true;
+    for(int i = 0; i < item->childCount(); ++i)
+        if(item->child(i)->checkState(0) == Qt::Checked) return true;
 
     return false;
 }
@@ -413,26 +418,26 @@ hasSelectedChildren(QTreeWidgetItem* item)
 void
 deselectChildren(QTreeWidgetItem* item)
 {
-    if (item->checkState(0) == Qt::Unchecked)
-        for (int i = 0; i < item->childCount(); ++i)
-            if (item->child(i)->checkState(0) == Qt::Checked)
+    if(item->checkState(0) == Qt::Unchecked)
+        for(int i = 0; i < item->childCount(); ++i)
+            if(item->child(i)->checkState(0) == Qt::Checked)
                 item->child(i)->setCheckState(0, Qt::Unchecked);
 }
 
 void
 smartSwitch(QTreeWidgetItem* item, int column)
 {
-    if (item->checkState(column) != Qt::Checked)
-        item->setCheckState(column, hasSelectedChildren(item)
-                              ? Qt::PartiallyChecked
-                              : Qt::Unchecked);
+    if(item->checkState(column) != Qt::Checked)
+        item->setCheckState(column,
+                            hasSelectedChildren(item) ? Qt::PartiallyChecked :
+                                                        Qt::Unchecked);
 }
 
 void
 MainWindow::selectParent(QTreeWidgetItem* child, int column)
 {
     QTreeWidgetItem* parent = child->parent();
-    if (parent)
+    if(parent)
         smartSwitch(parent, column);
     else
         deselectChildren(child);
