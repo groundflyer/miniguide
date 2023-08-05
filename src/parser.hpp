@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QSet>
 #include <QString>
+#include <QStringList>
 #include <QVector>
 
 struct Var
@@ -25,7 +26,7 @@ struct Instruction
 struct Intrinsic
 {
     QString              name;
-    QSet<QString>        techs;
+    QString              tech;
     QString              category;
     QSet<QString>        cpuids;
     QString              ret_type;
@@ -45,13 +46,21 @@ struct ParsingError
     } reason = NOT_OPEN;
 };
 
+struct Tech
+{
+    QString     family;
+    QStringList techs;
+};
+
 using Intrinsics = QVector<Intrinsic>;
 
 struct ParseData
 {
-    QString    version;
-    QString    date;
-    Intrinsics intrinsics;
+    QString       version;
+    QString       date;
+    Intrinsics    intrinsics;
+    QVector<Tech> technologies;
+    QStringList   categories;
 };
 
 ParseData
