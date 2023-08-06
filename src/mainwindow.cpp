@@ -65,17 +65,16 @@ format_parms(const QVector<Var>& parms) noexcept
     return varlist.join(' ');
 }
 
+static constexpr inline int id_role = 1000;
+
 QString
 intrinsicID(const Intrinsic& i)
 {
-    if(i.instructions.empty()) return i.name;
+    static const QString id_template("%1 (%2: %3)");
 
-    static const QString id_template("%1 (%2)");
-    QString              instruction = i.instructions.front().name.toLower();
+    QStringList cpuids = i.cpuids.values();
 
-    if(i.instructions.count() > 1) instruction += ",..";
-
-    return id_template.arg(i.name, instruction);
+    return id_template.arg(i.name, i.tech, cpuids.join('+'));
 };
 
 void
@@ -89,7 +88,8 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
         const QString tooltip =
             QString("%1 %2(%3)").arg(i.ret_type, i.name, format_parms(i.parms));
         const QString    id   = intrinsicID(i);
-        QListWidgetItem* item = new QListWidgetItem(id);
+        QListWidgetItem* item = new QListWidgetItem(i.name);
+        item->setData(id_role, id);
         item->setToolTip(tooltip);
         item->setBackground(techBrush(i.tech));
         m_intrinsics_widgets.append(item);
@@ -109,7 +109,7 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
     QObject::connect(p_name_list,
                      &QListWidget::itemClicked,
                      [&](QListWidgetItem* item)
-                     { showIntrinsic(m_intrinsics_map[item->text()]); });
+                     { showIntrinsic(intrinsic(item)); });
 }
 
 QString
@@ -217,10 +217,12 @@ MainWindow::filter()
     const QSet<QString> cpuids      = selectedCPUIDs();
     const QSet<QString> cats        = selectedCategories();
 
+    static const QString svml("SVML");
+
     for(QListWidgetItem* item: m_intrinsics_widgets)
     {
+        const Intrinsic& i     = intrinsic(item);
         const QString    iname = item->text();
-        const Intrinsic& i     = m_intrinsics_map[iname];
 
         const bool name_match =
             search_name.isEmpty() ||
@@ -230,7 +232,14 @@ MainWindow::filter()
                                 techs.contains(i.tech) ||
                                 cpuids.intersects(i.cpuids);
 
-        const bool match = name_match && tech_match && cat_match;
+        // SVML intrinsics have a lot of CPUID flags
+        // we don't wanna show them when it is not selected
+        const bool svml_match =
+            i.tech == svml ?
+                (techs.empty() && cpuids.empty()) || techs.contains(svml) :
+                true;
+
+        const bool match = name_match && tech_match && cat_match && svml_match;
 
         item->setHidden(!match);
     }
@@ -329,6 +338,12 @@ MainWindow::showIntrinsic(const Intrinsic& i)
                 tab->setCurrentIndex(ti);
                 return;
             }
+}
+
+const Intrinsic&
+MainWindow::intrinsic(QListWidgetItem* item)
+{
+    return m_intrinsics_map[item->data(id_role).toString()];
 }
 
 QStringList

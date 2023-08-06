@@ -51,6 +51,9 @@ class MainWindow : public QMainWindow
     void
     showIntrinsic(const Intrinsic& i);
 
+    const Intrinsic&
+    intrinsic(QListWidgetItem* item);
+
   private slots:
     void
     selectParent(QTreeWidgetItem* child, int column);
