@@ -26,21 +26,6 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    static const inline QStringList technologies = {"MMX",
-                                                    "SSE",
-                                                    "SSE2",
-                                                    "SSE3",
-                                                    "SSSE3",
-                                                    "SSE4.1",
-                                                    "SSE4.2",
-                                                    "AVX",
-                                                    "AVX2",
-                                                    "FMA",
-                                                    "AVX-512",
-                                                    "KNC",
-                                                    "SVML",
-                                                    "Other"};
-
     QLineEdit*                   p_search_edit = new QLineEdit;
     QTreeWidget*                 p_tech_tree   = new QTreeWidget;
     QListWidget*                 p_cat_list    = new QListWidget;
@@ -54,19 +39,11 @@ class MainWindow : public QMainWindow
     QHash<QString, Intrinsic>    m_intrinsics_map;
     QHash<QString, QDockWidget*> m_dock_widgets;
     QHash<QString, QColor>       m_colormap{
-              {  "KNC", {255, 142, 0}},
-              { "SVML", {0, 175, 239}},
-              {"Other",      Qt::gray}
+              {"Other", Qt::gray}
     };
 
     QBrush
     techBrush(const QString& tech, const int alpha = 255) const;
-
-    void
-    fillTechTree(const QSet<QString>& cpuids);
-
-    void
-    fillCategoriesList(const QSet<QString>& categories);
 
     void
     filter();
@@ -80,6 +57,12 @@ class MainWindow : public QMainWindow
 
   public:
     MainWindow(QWidget* parent = nullptr);
+
+    void
+    fillTechTree(const QVector<Tech>& technologies);
+
+    void
+    fillCategoriesList(const QStringList& categories);
 
     void
     addIntrinsics(const Intrinsics&);

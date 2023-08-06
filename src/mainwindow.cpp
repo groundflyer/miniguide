@@ -53,13 +53,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 
     setDockOptions(AnimatedDocks | AllowTabbedDocks);
     setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
-
-    // filling colormap
-    const int num_clrs = technologies.indexOf("AVX-512");
-    int       h        = 59;
-    const int d        = (359 - h) / num_clrs;
-    for(int i = 0; i <= num_clrs; ++i, h += d)
-        m_colormap.insert(technologies[i], QColor::fromHsv(h, 255, 255));
 }
 
 QString
@@ -88,32 +81,21 @@ intrinsicID(const Intrinsic& i)
 void
 MainWindow::addIntrinsics(const Intrinsics& intrinsics)
 {
-    QSet<QString> techs;
-    QSet<QString> categories;
-    QSet<QString> cpuids;
     m_intrinsics_widgets.reserve(intrinsics.count());
     m_intrinsics_map.reserve(intrinsics.count());
 
     for(const Intrinsic& i: intrinsics)
     {
-        techs.unite(i.techs);
-        categories.insert(i.category);
-
-        cpuids.unite(i.cpuids);
-
         const QString tooltip =
             QString("%1 %2(%3)").arg(i.ret_type, i.name, format_parms(i.parms));
         const QString    id   = intrinsicID(i);
         QListWidgetItem* item = new QListWidgetItem(id);
         item->setToolTip(tooltip);
-        item->setBackground(techBrush(i.techs.values().front()));
+        item->setBackground(techBrush(i.tech));
         m_intrinsics_widgets.append(item);
         p_name_list->addItem(item);
         m_intrinsics_map.insert(id, i);
     }
-
-    fillTechTree(cpuids);
-    fillCategoriesList(categories);
 
     auto slot = [&](auto...) { filter(); };
 
@@ -245,7 +227,7 @@ MainWindow::filter()
             iname.contains(search_name, Qt::CaseInsensitive);
         const bool cat_match  = cats.empty() || cats.contains(i.category);
         const bool tech_match = (techs.empty() && cpuids.empty()) ||
-                                techs.intersects(i.techs) ||
+                                techs.contains(i.tech) ||
                                 cpuids.intersects(i.cpuids);
 
         const bool match = name_match && tech_match && cat_match;
@@ -255,14 +237,9 @@ MainWindow::filter()
 }
 
 void
-MainWindow::fillCategoriesList(const QSet<QString>& categories)
+MainWindow::fillCategoriesList(const QStringList& categories)
 {
-    // filling up categories
-    QStringList cats = categories.values();
-    cats.sort();
-    m_category_widgets.reserve(cats.count());
-
-    for(const QString& c: cats)
+    for(const QString& c: categories)
     {
         QListWidgetItem* item = new QListWidgetItem(c);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
@@ -273,59 +250,35 @@ MainWindow::fillCategoriesList(const QSet<QString>& categories)
 }
 
 void
-MainWindow::fillTechTree(const QSet<QString>& cpuids)
+MainWindow::fillTechTree(const QVector<Tech>& technologies)
 {
-    // prepare data
-    QHash<QString, QStringList> subtech;
-
-    for(const QString& tt: technologies) subtech.insert(tt, QStringList());
-
-    for(const QString& cpuid: cpuids)
-    {
-        if(technologies.contains(cpuid)) continue;
-
-        bool other = true;
-
-        // adding in reverse order
-        for(auto it = technologies.crbegin(); it != technologies.crend(); ++it)
-        {
-            if(cpuid != *it && cpuid.startsWith(*it))
-            {
-                subtech[*it].append(cpuid);
-                other = false;
-                break;
-            }
-        }
-
-        if(other) subtech["Other"].append(cpuid);
-    }
+    // filling colormap
+    const int num_clrs = technologies.count() - 2;
+    int       h        = 59;
+    const int d        = (359 - h) / num_clrs;
+    for(int i = 0; i <= num_clrs; ++i, h += d)
+        m_colormap.insert(technologies[i].family, QColor::fromHsv(h, 255, 200));
 
     // fill the tree widget
-    for(const QString& tt: technologies)
+    for(const Tech& tt: technologies)
     {
         QTreeWidgetItem* item = new QTreeWidgetItem(p_tech_tree);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(0, Qt::Unchecked);
-        item->setText(0, tt);
-        item->setBackground(0, techBrush(tt));
+        item->setText(0, tt.family);
+        item->setBackground(0, techBrush(tt.family));
 
         m_tech_widgets.append(item);
 
-        QStringList& subs = subtech[tt];
-
-        if(!subs.empty())
+        for(const QString& sub: tt.techs)
         {
-            subs.sort();
-            for(const QString& sub: subs)
-            {
-                QTreeWidgetItem* child = new QTreeWidgetItem(item);
-                child->setFlags(child->flags() | Qt::ItemIsUserCheckable);
-                child->setCheckState(0, Qt::Unchecked);
-                child->setText(0, sub);
-                child->setBackground(0, techBrush(tt, 127));
+            QTreeWidgetItem* child = new QTreeWidgetItem(item);
+            child->setFlags(child->flags() | Qt::ItemIsUserCheckable);
+            child->setCheckState(0, Qt::Unchecked);
+            child->setText(0, sub);
+            child->setBackground(0, techBrush(tt.family, 127));
 
-                m_cpuid_widgets.append(child);
-            }
+            m_cpuid_widgets.append(child);
         }
     }
 }
@@ -354,9 +307,14 @@ MainWindow::showIntrinsic(const Intrinsic& i)
     }
     else
     {
-        QDockWidget* dw = new QDockWidget(iid);
+        static const QString stylesheet_template(
+            "#idetails {border: 3px inset %1;}");
+        IntrinsicDetails* idw = new IntrinsicDetails(i);
+        QDockWidget*      dw  = new QDockWidget(iid);
+        const QColor      clr = m_colormap.value(i.tech, Qt::gray);
+        idw->setStyleSheet(stylesheet_template.arg(clr.name()));
         dw->setObjectName(iid);
-        dw->setWidget(new IntrinsicDetails(i));
+        dw->setWidget(idw);
         dw->setAllowedAreas(Qt::RightDockWidgetArea);
         addDockWidget(Qt::RightDockWidgetArea, dw);
         if(!m_dock_widgets.empty())

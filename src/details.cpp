@@ -37,6 +37,7 @@ format_instructions(const QVector<Instruction>& ins) noexcept
 IntrinsicDetails::IntrinsicDetails(const Intrinsic& i, QWidget* parent) :
     QScrollArea(parent)
 {
+    setObjectName("idetails");
     monospace.setStyleHint(QFont::TypeWriter);
     bold.setBold(true);
 

@@ -37,7 +37,7 @@ main(int argc, char* argv[])
     QApplication::setApplicationName(app_name);
     QApplication::setOrganizationName("Roman Saldygashev");
 
-    QString data_path = QApplication::applicationDirPath() + "/data-3.5.2.xml";
+    QString data_path = QApplication::applicationDirPath() + "/data-3-6-6.xml";
     QSettings settings;
     QVariant  data_path_v = settings.value(st::data);
     if(data_path_v.canConvert<QString>()) data_path = data_path_v.toString();
@@ -79,6 +79,8 @@ main(int argc, char* argv[])
     {
         const ParseData data = parse_doc(&data_file);
 
+        window.fillTechTree(data.technologies);
+        window.fillCategoriesList(data.categories);
         window.addIntrinsics(data.intrinsics);
     }
     catch(const ParsingError& ex)
