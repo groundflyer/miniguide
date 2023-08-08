@@ -1,4 +1,4 @@
-# MinIGuide - Minimalistic Intrnisics Guide #
+# MinIGuide - Minimalistic Intrinsics Guide #
 
 Simple and fast offline version of [Intel® Intrinsics Guide](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html) for desktop.
 
@@ -7,7 +7,7 @@ Simple and fast offline version of [Intel® Intrinsics Guide](https://www.intel.
 # Features
 
 * Minimalistic UI
-* Fast. Takes under a second to start up
+* Fast. Takes under a second to load data and start up
 * Remembers previous session
 
 # Usage
