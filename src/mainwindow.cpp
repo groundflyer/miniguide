@@ -234,10 +234,9 @@ MainWindow::filter()
 
         // SVML intrinsics have a lot of CPUID flags
         // we don't wanna show them when it is not selected
-        const bool svml_match =
-            i.tech == svml ?
-                (techs.empty() && cpuids.empty()) || techs.contains(svml) :
-                true;
+        const bool svml_match = (i.tech != svml) ||
+                                (techs.empty() && cpuids.empty()) ||
+                                techs.contains(svml);
 
         const bool match = name_match && tech_match && cat_match && svml_match;
 
