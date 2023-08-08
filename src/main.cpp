@@ -92,12 +92,17 @@ main(int argc, char* argv[])
         settings.setValue(st::data, data_path);
     }
 
+    QString data_v;
+    QString data_d;
+
     try
     {
         QElapsedTimer timer;
         timer.start();
 
         const ParseData data = parse_doc(&data_file);
+        data_v               = data.version;
+        data_d               = data.date;
 
         qInfo("Parsed data in %.03f seconds",
               static_cast<float>(timer.restart()) / 1000.f);
@@ -155,7 +160,11 @@ main(int argc, char* argv[])
             settings.value(st::intrs, QStringList()).toStringList());
     }
 
-    window.setWindowTitle(app_name);
+    if(!data_v.isEmpty())
+        window.setWindowTitle(
+            QString("%1 [data v%2 (%3)]").arg(app_name, data_v, data_d));
+    else
+        window.setWindowTitle(app_name);
     window.show();
 
     return app.exec();
