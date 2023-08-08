@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -35,7 +36,7 @@ main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
     QApplication::setApplicationName(app_name);
-    QApplication::setOrganizationName("Roman Saldygashev");
+    QApplication::setOrganizationName("MinIGuide Project");
 
     QString data_path = QApplication::applicationDirPath() + "/data-3-6-6.xml";
     QSettings settings;
@@ -77,11 +78,20 @@ main(int argc, char* argv[])
 
     try
     {
+        QElapsedTimer timer;
+        timer.start();
+
         const ParseData data = parse_doc(&data_file);
+
+        qInfo("Parsed data in %.03f seconds",
+              static_cast<float>(timer.restart()) / 1000.f);
 
         window.fillTechTree(data.technologies);
         window.fillCategoriesList(data.categories);
         window.addIntrinsics(data.intrinsics);
+
+        qInfo("Initialized GUI in %.03f seconds",
+              static_cast<float>(timer.elapsed()) / 1000.f);
     }
     catch(const ParsingError& ex)
     {
