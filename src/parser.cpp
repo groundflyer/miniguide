@@ -79,7 +79,8 @@ Intrinsic
 parse_intrinsic(const QDomNode& node,
                 QSet<QString>&  techs,
                 QSet<QString>&  cpuids,
-                QSet<QString>&  categories)
+                QSet<QString>&  categories,
+                QSet<QString>&  rets)
 {
     Intrinsic ret;
 
@@ -123,8 +124,12 @@ parse_intrinsic(const QDomNode& node,
                 cpuids.insert(text);
             },
             "return",
-            [&]() {
-                ret.ret_type = field.attributes().namedItem("type").nodeValue();
+            [&]()
+            {
+                auto&& node_value =
+                    field.attributes().namedItem("type").nodeValue();
+                ret.ret_type = node_value;
+                rets.insert(node_value);
             },
             "parameter",
             [&]() { ret.parms.append(parse_var(field)); },
@@ -194,6 +199,7 @@ parse_doc(QFile* data_file)
         ParseData                     ret;
         QHash<QString, QSet<QString>> techmap;
         QSet<QString>                 categories;
+        QSet<QString>                 rets;
 
         {
             QSet<QString> techs;
@@ -204,7 +210,8 @@ parse_doc(QFile* data_file)
                 ret.intrinsics.append(parse_intrinsic(xml_intrinsics.at(i),
                                                       techs,
                                                       cpuids,
-                                                      categories));
+                                                      categories,
+                                                      rets));
 
             for(const QString& cpuid: cpuids)
             {
@@ -262,6 +269,12 @@ parse_doc(QFile* data_file)
         ret.categories.reserve(categories.count());
         ret.categories.append(categories.values());
         ret.categories.sort();
+
+        // fill up return parameters
+        ret.rets.reserve(rets.count() + 1);
+        ret.rets.append("*");
+        ret.rets.append(rets.values());
+        ret.rets.sort();
 
         ret.version = version_node.nodeValue();
         ret.date    = date_node.nodeValue();

@@ -41,6 +41,7 @@ static const QString split2("Window/split2");
 static const QString winstate("Window/state");
 
 static const QString search("Session/search");
+static const QString ret("Session/ret");
 static const QString techs("Session/technologies");
 static const QString cats("Session/categories");
 static const QString cpuids("Session/cpuids");
@@ -70,6 +71,7 @@ main(int argc, char* argv[])
         settings.setValue(st::split2, split2);
         settings.setValue(st::winstate, window.saveState());
         settings.setValue(st::search, window.searchText());
+        settings.setValue(st::ret, window.selectedRet());
         settings.setValue(st::techs,
                           QStringList(window.selectedTechs().values()));
         settings.setValue(st::cats,
@@ -109,6 +111,7 @@ main(int argc, char* argv[])
 
         window.fillTechTree(data.technologies);
         window.fillCategoriesList(data.categories);
+        window.fillRetCombo(data.rets);
         window.addIntrinsics(data.intrinsics);
 
         qInfo("Initialized GUI in %.03f seconds",
@@ -150,6 +153,7 @@ main(int argc, char* argv[])
 
         // session
         window.setSearch(settings.value(st::search, "").toString());
+        window.selectRet(settings.value(st::ret, "*").toString());
         window.selectTechs(
             settings.value(st::techs, QStringList()).toStringList());
         window.selectCategories(

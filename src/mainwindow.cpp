@@ -19,6 +19,7 @@
 #include "details.hpp"
 
 #include <QBrush>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QLinearGradient>
 #include <QList>
@@ -32,6 +33,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 {
     p_search_edit->setPlaceholderText("_mm_search");
     p_search_edit->setClearButtonEnabled(true);
+
+    QHBoxLayout* search_lay = new QHBoxLayout;
+    search_lay->setAlignment(Qt::AlignRight);
+    search_lay->addWidget(p_search_edit);
+    search_lay->addWidget(new QLabel("Return"));
+    search_lay->addWidget(p_ret_combo);
 
     p_tech_tree->setHeaderHidden(true);
 
@@ -60,7 +67,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 
     QVBoxLayout* top_layout = new QVBoxLayout;
     top_layout->setAlignment(Qt::AlignTop);
-    top_layout->addWidget(p_search_edit);
+    top_layout->addLayout(search_lay);
     top_layout->addWidget(p_top_split);
 
     QWidget* central = new QWidget;
@@ -123,6 +130,7 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
     QObject::connect(p_tech_tree, &QTreeWidget::itemChanged, slot);
     QObject::connect(p_cat_list, &QListWidget::itemChanged, slot);
     QObject::connect(p_search_edit, &QLineEdit::textChanged, slot);
+    QObject::connect(p_ret_combo, &QComboBox::currentTextChanged, slot);
     QObject::connect(p_name_list,
                      &QListWidget::itemClicked,
                      [&](QListWidgetItem* item)
@@ -230,6 +238,7 @@ void
 MainWindow::filter()
 {
     const QString       search_name = searchText();
+    const QString       ret_type    = selectedRet();
     const QSet<QString> techs       = selectedTechs();
     const QSet<QString> cpuids      = selectedCPUIDs();
     const QSet<QString> cats        = selectedCategories();
@@ -255,7 +264,10 @@ MainWindow::filter()
                                 (techs.empty() && cpuids.empty()) ||
                                 techs.contains(svml);
 
-        const bool match = name_match && tech_match && cat_match && svml_match;
+        const bool ret_match = (ret_type == "*") || ret_type == i.ret_type;
+
+        const bool match =
+            name_match && tech_match && cat_match && svml_match && ret_match;
 
         item->setHidden(!match);
     }
@@ -306,6 +318,24 @@ MainWindow::fillTechTree(const QVector<Tech>& technologies)
             m_cpuid_widgets.append(child);
         }
     }
+}
+
+void
+MainWindow::fillRetCombo(const QStringList& rets)
+{
+    p_ret_combo->addItems(rets);
+}
+
+QString
+MainWindow::selectedRet() const
+{
+    return p_ret_combo->currentText();
+}
+
+void
+MainWindow::selectRet(const QString& ret)
+{
+    p_ret_combo->setCurrentText(ret);
 }
 
 std::pair<QByteArray, QByteArray>

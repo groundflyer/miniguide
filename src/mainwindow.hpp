@@ -21,6 +21,7 @@
 #include "parser.hpp"
 
 #include <QColor>
+#include <QComboBox>
 #include <QDockWidget>
 #include <QHash>
 #include <QLineEdit>
@@ -41,6 +42,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     QLineEdit*                   p_search_edit = new QLineEdit;
+    QComboBox*                   p_ret_combo   = new QComboBox;
     QTreeWidget*                 p_tech_tree   = new QTreeWidget;
     QListWidget*                 p_cat_list    = new QListWidget;
     QListWidget*                 p_name_list   = new QListWidget;
@@ -82,6 +84,9 @@ class MainWindow : public QMainWindow
     fillCategoriesList(const QStringList& categories);
 
     void
+    fillRetCombo(const QStringList& rets);
+
+    void
     addIntrinsics(const Intrinsics&);
 
     QString
@@ -89,6 +94,12 @@ class MainWindow : public QMainWindow
 
     void
     setSearch(const QString&);
+
+    QString
+    selectedRet() const;
+
+    void
+    selectRet(const QString&);
 
     QSet<QString>
     selectedTechs() const;

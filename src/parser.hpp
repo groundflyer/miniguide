@@ -75,6 +75,7 @@ struct ParseData
     Intrinsics    intrinsics;
     QVector<Tech> technologies;
     QStringList   categories;
+    QStringList   rets;
 };
 
 ParseData
