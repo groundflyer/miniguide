@@ -120,21 +120,6 @@ MainWindow::addIntrinsics(const Intrinsics& intrinsics)
         p_name_list->addItem(item);
         m_intrinsics_map.insert(id, i);
     }
-
-    auto slot = [&](auto...) { filter(); };
-
-    QObject::connect(p_tech_tree,
-                     &QTreeWidget::itemChanged,
-                     this,
-                     &MainWindow::selectParent);
-    QObject::connect(p_tech_tree, &QTreeWidget::itemChanged, slot);
-    QObject::connect(p_cat_list, &QListWidget::itemChanged, slot);
-    QObject::connect(p_search_edit, &QLineEdit::textChanged, slot);
-    QObject::connect(p_ret_combo, &QComboBox::currentTextChanged, slot);
-    QObject::connect(p_name_list,
-                     &QListWidget::itemClicked,
-                     [&](QListWidgetItem* item)
-                     { showIntrinsic(intrinsic(item)); });
 }
 
 QString
@@ -318,6 +303,11 @@ MainWindow::fillTechTree(const QVector<Tech>& technologies)
             m_cpuid_widgets.append(child);
         }
     }
+
+    QObject::connect(p_tech_tree,
+                     &QTreeWidget::itemChanged,
+                     this,
+                     &MainWindow::selectParent);
 }
 
 void
@@ -460,4 +450,28 @@ MainWindow::selectParent(QTreeWidgetItem* child, int column)
         smartSwitch(parent, column);
     else
         deselectChildren(child);
+}
+
+void
+MainWindow::connectSignals()
+{
+    auto slot = [&](auto...) { filter(); };
+
+    QObject::connect(p_tech_tree, &QTreeWidget::itemChanged, slot);
+    QObject::connect(p_cat_list, &QListWidget::itemChanged, slot);
+    QObject::connect(p_search_edit, &QLineEdit::textChanged, slot);
+    QObject::connect(p_ret_combo, &QComboBox::currentTextChanged, slot);
+    QObject::connect(p_name_list,
+                     &QListWidget::itemClicked,
+                     [&](QListWidgetItem* item)
+                     { showIntrinsic(intrinsic(item)); });
+}
+
+void
+MainWindow::initialFilter()
+{
+    if(!(searchText().isEmpty() && selectedRet() == "*" &&
+         selectedTechs().isEmpty() && selectedCPUIDs().isEmpty() &&
+         selectedCategories().isEmpty()))
+        filter();
 }

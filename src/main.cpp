@@ -169,7 +169,10 @@ main(int argc, char* argv[])
             QString("%1 [data v%2 (%3)]").arg(app_name, data_v, data_d));
     else
         window.setWindowTitle(app_name);
+
     window.show();
+    window.connectSignals();
+    window.initialFilter();
 
     return app.exec();
 }

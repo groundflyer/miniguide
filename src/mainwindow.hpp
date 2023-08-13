@@ -78,6 +78,12 @@ class MainWindow : public QMainWindow
     MainWindow(QWidget* parent = nullptr);
 
     void
+    initialFilter();
+
+    void
+    connectSignals();
+
+    void
     fillTechTree(const QVector<Tech>& technologies);
 
     void
