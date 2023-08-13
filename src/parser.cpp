@@ -126,8 +126,9 @@ parse_intrinsic(const QDomNode& node,
             "return",
             [&]()
             {
-                auto&& node_value =
+                QString node_value =
                     field.attributes().namedItem("type").nodeValue();
+                if(node_value == "void*") node_value = "void *";
                 ret.ret_type = node_value;
                 rets.insert(node_value);
             },
