@@ -15,6 +15,7 @@
 //
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 #include "mainwindow.hpp"
 #include "details.hpp"
 
@@ -31,7 +32,7 @@
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 {
-    p_search_edit->setPlaceholderText("_mm_search");
+    p_search_edit->setPlaceholderText("_mm_search or instruction");
     p_search_edit->setClearButtonEnabled(true);
 
     QHBoxLayout* search_lay = new QHBoxLayout;
@@ -219,14 +220,26 @@ MainWindow::selectCategories(const QStringList& ss)
                    std::mem_fn(&QListWidgetItem::setCheckState));
 }
 
+bool
+match_instructions(const QString&              search,
+                   const QVector<Instruction>& instructions) noexcept
+{
+    bool ret = false;
+
+    for(const Instruction& i: instructions)
+        ret |= i.name.contains(search, Qt::CaseInsensitive);
+
+    return ret;
+}
+
 void
 MainWindow::filter()
 {
-    const QString       search_name = searchText();
-    const QString       ret_type    = selectedRet();
-    const QSet<QString> techs       = selectedTechs();
-    const QSet<QString> cpuids      = selectedCPUIDs();
-    const QSet<QString> cats        = selectedCategories();
+    const QString       search   = searchText();
+    const QString       ret_type = selectedRet();
+    const QSet<QString> techs    = selectedTechs();
+    const QSet<QString> cpuids   = selectedCPUIDs();
+    const QSet<QString> cats     = selectedCategories();
 
     static const QString svml("SVML");
 
@@ -235,9 +248,9 @@ MainWindow::filter()
         const Intrinsic& i     = intrinsic(item);
         const QString    iname = item->text();
 
-        const bool name_match =
-            search_name.isEmpty() ||
-            iname.contains(search_name, Qt::CaseInsensitive);
+        const bool search_match = search.isEmpty() ||
+                                  iname.contains(search, Qt::CaseInsensitive) ||
+                                  match_instructions(search, i.instructions);
         const bool cat_match  = cats.empty() || cats.contains(i.category);
         const bool tech_match = (techs.empty() && cpuids.empty()) ||
                                 techs.contains(i.tech) ||
@@ -252,7 +265,7 @@ MainWindow::filter()
         const bool ret_match = (ret_type == "*") || ret_type == i.ret_type;
 
         const bool match =
-            name_match && tech_match && cat_match && svml_match && ret_match;
+            search_match && tech_match && cat_match && svml_match && ret_match;
 
         item->setHidden(!match);
     }
